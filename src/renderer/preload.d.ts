@@ -13,6 +13,12 @@ declare global {
         once(channel: Channels, func: (...args: unknown[]) => void): void;
         openDirectory: () => Promise<string | undefined>;
       };
+
+      store: {
+        get: (key: string) => unknown;
+        set: (key: string, val: unknown) => void;
+        // any other methods you've defined...
+      };
     };
 
     aam: {

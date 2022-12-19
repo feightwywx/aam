@@ -185,19 +185,17 @@ const Songs: React.FC = () => {
     onChange: onSelectChange,
   };
 
-  console.log(data);
-
   return (
     <>
       <Table
         columns={column}
         dataSource={data}
         size="middle"
-        scroll={{ x: 'calc(100vw - 220px)', y: 'calc(100vh - 100px)' }}
+        scroll={{ x: 'calc(100vw - 220px)', y: 'calc(100vh - 110px)' }}
         style={{ height: 'calc(100vh - 48px)' }}
         pagination={{
           // @ts-expect-error Type '"none"' is not assignable to type 'TablePaginationPosition'.
-          position: ['none', 'bottomLeft'],
+          position: ['topLeft', 'none'],
           showTotal: (total, range) =>
             `${total} 曲目中的 ${range[0]}-${range[1]} `,
           defaultPageSize: 20,

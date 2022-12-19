@@ -4,7 +4,7 @@ export interface IPCResponse<T = unknown> {
   data: T;
 }
 
-export interface Song {
+export interface SongBase {
   idx: number;
   id: string;
   title_localized: {
@@ -23,6 +23,10 @@ export interface Song {
   date: number;
   version: string;
   difficulties: SongDifficulty[];
+}
+
+export interface Song extends SongBase {
+  _external?: string;
 }
 
 export interface SongDifficulty {

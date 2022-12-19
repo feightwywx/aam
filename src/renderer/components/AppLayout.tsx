@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { useAppDispatch, useAppSelector } from 'renderer/store';
 import { useNavigate } from 'react-router-dom';
 import { setPath, setSongs } from 'stateSlices/assets';
+import { useEffect } from 'react';
 
 export const MainMenu: MenuProps['items'] = [
   { key: 'song', label: '曲目' },
@@ -23,13 +24,16 @@ export const AppLayout: React.FC<{
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    window.electron.ipcRenderer.store.set('assets', assets);
+  }, [assets]);
+
   window.aam.ipcRenderer.onCloseFolder(() => {
     dispatch(setPath(''));
     navigate('/');
   });
 
   window.aam.ipcRenderer.onPushSongs((_, args) => {
-    console.log('push songs args:', args);
     dispatch(setPath(args.path));
     dispatch(setSongs(args.songs));
     navigate('/songs');

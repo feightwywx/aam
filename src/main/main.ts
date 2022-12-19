@@ -17,6 +17,8 @@ import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { makeFailResp, makeSuccessResp } from './utils/ipcResponse';
 import { loadSonglistIPC } from './utils/assets';
+import { globalStore } from '../globalStore';
+import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
 
 // class AppUpdater {
 //   constructor() {
@@ -27,12 +29,6 @@ import { loadSonglistIPC } from './utils/assets';
 // }
 
 let mainWindow: BrowserWindow | null = null;
-
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -130,11 +126,29 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    installExtension(REDUX_DEVTOOLS)
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log('An error occurred: ', err));
+
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
+    });
+
+    ipcMain.on('electron-store-get', async (event, val) => {
+      event.returnValue = globalStore.get(val);
+    });
+    ipcMain.on('electron-store-set', async (event, key, val) => {
+      globalStore.set(key, val);
+    });
+
+    globalStore.onDidAnyChange((newValue) => {
+      mainWindow?.webContents.send(
+        'aam:pushSongs',
+        (newValue as { assets: unknown }).assets
+      );
     });
 
     ipcMain.handle('dialog:openDirectory', async () => {
