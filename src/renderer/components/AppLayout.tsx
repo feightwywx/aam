@@ -26,7 +26,10 @@ export const AppLayout: React.FC<{
 
   useEffect(() => {
     window.electron.ipcRenderer.store.set('assets', assets);
-  }, [assets]);
+    if (!assets.path) {
+      navigate('/');
+    }
+  }, [assets, navigate]);
 
   window.aam.ipcRenderer.onCloseFolder(() => {
     dispatch(setPath(''));

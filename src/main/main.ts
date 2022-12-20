@@ -169,6 +169,9 @@ app
 
     ipcMain.handle('aam:loadSongs', async (_, assetsPath: string) => {
       const songlist = await loadSonglistIPC(assetsPath);
+      if (songlist.code !== 0) {
+        dialog.showErrorBox('错误', songlist.message);
+      }
       return songlist;
     });
   })

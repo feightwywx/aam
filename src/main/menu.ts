@@ -5,15 +5,15 @@ import {
   BrowserWindow,
   MenuItemConstructorOptions,
   dialog,
-  ipcMain,
 } from 'electron';
-import path from 'path';
 import log from 'electron-log';
-import fs from 'fs';
 
 import { globalStore } from '../globalStore';
-import { importSong, loadSonglistIPC, mergeSonglist } from './utils/assets';
-import type { Song } from '../type';
+import { loadSonglistIPC } from './utils/assets';
+import {
+  importBgMenuHandlerFactory,
+  importSongMenuHandlerFactory,
+} from './menuHandler';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -82,10 +82,14 @@ export default class MenuBuilder {
             );
             if (!canceled) {
               const songlist = await loadSonglistIPC(filePaths[0]);
-              this.mainWindow.webContents.send('aam:pushSongs', {
-                path: filePaths[0],
-                songs: songlist.data,
-              });
+              if (songlist.code === 0) {
+                this.mainWindow.webContents.send('aam:pushSongs', {
+                  path: filePaths[0],
+                  songs: songlist.data,
+                });
+              } else {
+                dialog.showErrorBox('错误', songlist.message);
+              }
             }
           },
         },
@@ -95,64 +99,17 @@ export default class MenuBuilder {
             {
               label: '歌曲',
               accelerator: 'Command+I',
-              click: async () => {
-                const { canceled, filePaths } = await dialog.showOpenDialog(
-                  this.mainWindow,
-                  {
-                    properties: [
-                      'openDirectory',
-                      'treatPackageAsDirectory',
-                      'multiSelections',
-                    ],
-                  }
-                );
-                if (!canceled) {
-                  const songs = [];
-                  const failedPaths: string[] = [];
-                  const assetsPath = globalStore.get('assets.path') as string;
-                  // eslint-disable-next-line no-restricted-syntax
-                  for (const srcPath of filePaths) {
-                    // eslint-disable-next-line no-await-in-loop
-                    const imported = await importSong(srcPath, assetsPath);
-                    if (imported) {
-                      songs.push(imported);
-                    } else {
-                      failedPaths.push(srcPath);
-                    }
-                  }
-                  const mergedSongs = await mergeSonglist(
-                    songs,
-                    globalStore.get('assets.songs') as Song[]
-                  );
-                  globalStore.set('assets.songs', mergedSongs);
-                  fs.writeFileSync(
-                    path.join(assetsPath, 'songs', 'songlist'),
-                    JSON.stringify({ songs: mergedSongs }, null, 2)
-                  );
-
-                  dialog.showMessageBox({
-                    message: '\n'.concat(
-                      `已导入 ${songs.length} 首歌曲`,
-                      failedPaths.length === 0
-                        ? ''
-                        : `\n\n以下歌曲导入失败：\n${failedPaths.join('\n')}`
-                    ),
-                    type: failedPaths.length === 0 ? 'info' : 'error',
-                  });
-                }
-              },
+              click: importSongMenuHandlerFactory(this.mainWindow),
             },
             {
               label: '歌曲（链接模式）',
               accelerator: 'Shift+Command+I',
-              click: () => {},
-              enabled: false,
+              click: importSongMenuHandlerFactory(this.mainWindow, true),
             },
             { type: 'separator' },
             {
               label: '背景',
-              click: () => {},
-              enabled: false,
+              click: importBgMenuHandlerFactory(this.mainWindow),
             },
           ],
         },

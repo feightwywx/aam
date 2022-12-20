@@ -7,6 +7,10 @@ module.exports = {
     // Since React 17 and typescript 4.1 you can safely disable the rule
     'react/react-in-jsx-scope': 'off',
     'prettier/prettier': 'warn',
+    // some custom rules
+    'no-underscore-dangle': 'off',
+    'no-restricted-syntax': 'off',
+    'no-await-in-loop': 'warn',
   },
   parserOptions: {
     ecmaVersion: 2020,

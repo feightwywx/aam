@@ -7,25 +7,29 @@ import type { Song } from '../../type';
 import { buildSrcSongDepList } from './songDeps';
 
 export async function loadSonglistIPC(assetsPath: string) {
+  log.info(`loadSonglistIPC(): assets: ${assetsPath}`);
   const songlistPath = path.join(assetsPath, 'songs', 'songlist');
   if (fs.existsSync(songlistPath)) {
     const songlistString = fs.readFileSync(songlistPath).toString();
 
     try {
       const songlist = JSON.parse(songlistString);
-      return makeSuccessResp(songlist.songs);
+      if ('songs' in songlist && Array.isArray(songlist.songs)) {
+        return makeSuccessResp(songlist.songs);
+      }
+      return makeFailResp('songlist格式错误');
     } catch (e) {
       return makeFailResp((e as Error).toString());
     }
   }
-  return makeFailResp('Songlist not found');
+  return makeFailResp('不合法的Assets文件夹：未找到songlist');
 }
 
 export async function importSong(
   src: string,
   assets: string
 ): Promise<Song | undefined> {
-  log.info(`trying import song from ${src} to ${assets}`);
+  log.info(`importSong(): trying import song from ${src} to ${assets}`);
   const srcSonglistPath = path.join(src, 'songlist');
   if (fs.existsSync(srcSonglistPath)) {
     const srcSonglistString = fs.readFileSync(srcSonglistPath).toString();
@@ -55,6 +59,7 @@ export async function importSong(
 }
 
 export async function mergeSonglist(src: Song[], dest: Song[]) {
+  log.info(`mergeSonglist()`);
   src.forEach((song) => {
     if (!dest.find((s) => s.id === song.id)) {
       dest.push(song);

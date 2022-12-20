@@ -21,8 +21,6 @@ const Hello = () => {
               dispatch(setPath(dir));
               dispatch(setSongs(songsResp.data));
               navigate('/songs');
-            } else {
-              alert(songsResp.message);
             }
           }
         }}
