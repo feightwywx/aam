@@ -11,6 +11,10 @@ import { useAppDispatch, useAppSelector } from '../store';
 
 interface SongTableData extends Song {
   key: string;
+  idWithExtFlag: {
+    id: string;
+    ext?: string;
+  };
   title: string;
   bpm_combine: string;
 }
@@ -55,11 +59,28 @@ const Songs: React.FC = () => {
   const column: TableColumnsType<SongTableData> = [
     {
       title: 'ID',
-      dataIndex: 'id',
+      dataIndex: 'idWithExtFlag',
       key: 'id',
       width: 150,
       fixed: 'left',
       ellipsis: true,
+      render: ({ id, ext }) => {
+        return (
+          <>
+            <span title={id}>{id}</span>
+            {ext && (
+              <Tag
+                title={ext}
+                style={{
+                  marginLeft: 4,
+                }}
+              >
+                外
+              </Tag>
+            )}
+          </>
+        );
+      },
     },
     {
       title: '曲名',
@@ -70,12 +91,12 @@ const Songs: React.FC = () => {
       render: (title: { en: string; ja?: string }) => (
         <>
           <Tag>EN</Tag>
-          {title.en}
+          <span title={title.en}>{title.en}</span>
           {title.ja && (
             <>
               <tr />
               <Tag>JA</Tag>
-              {title.ja}
+              <span title={title.ja}>{title.ja}</span>
             </>
           )}
         </>
@@ -153,7 +174,9 @@ const Songs: React.FC = () => {
       dataIndex: 'date',
       key: 'date',
       width: 150,
-      render: (date) => new Date(date * 1000).toLocaleString(),
+      render: (date) => (
+        <span title={date}>{new Date(date * 1000).toLocaleString()}</span>
+      ),
     },
     {
       title: '版本',
@@ -169,6 +192,10 @@ const Songs: React.FC = () => {
       key: song.id,
       title: song.title_localized.ja ?? song.title_localized.en,
       bpm_combine: `${song.bpm.split('\n')[0]} (${song.bpm_base})`,
+      idWithExtFlag: {
+        id: song.id,
+        ext: song._external,
+      },
       ...song,
     }));
   }
