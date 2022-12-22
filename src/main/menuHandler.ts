@@ -5,7 +5,7 @@ import log from 'electron-log';
 
 import type { Song } from 'type';
 import { globalStore } from '../globalStore';
-import { importSong, mergeSonglist } from './utils/assets';
+import { importSong, makePackage, mergeSonglist } from './utils/assets';
 
 export function importSongMenuHandlerFactory(
   mainWindow: BrowserWindow,
@@ -89,6 +89,44 @@ export function importBgMenuHandlerFactory(mainWindow: BrowserWindow) {
         ),
         type: failedPaths.length === 0 ? 'info' : 'error',
       });
+    }
+  };
+}
+
+export function generatePackageMenuHandlerFactory(mainWindow: BrowserWindow) {
+  return async () => {
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: '选择导出安装包格式与位置',
+      filters: [
+        { name: 'iOS Application', extensions: ['ipa'] },
+        { name: 'Android Package', extensions: ['apk'] },
+      ],
+      properties: ['createDirectory'],
+    });
+    if (!canceled && filePath) {
+      const savePath = filePath;
+      const saveExt = path.extname(savePath);
+
+      const assetsPath = globalStore.get('assets.path') as string;
+      const packageRoot = path.resolve(
+        assetsPath,
+        saveExt === '.ipa' ? '../..' : '..'
+      );
+
+      const { response } = await dialog.showMessageBox(mainWindow, {
+        message: `确定包路径为 ${packageRoot} 吗？`,
+        type: 'question',
+        buttons: ['好', '取消'],
+        defaultId: 0,
+        title: '确认包路径',
+        detail: '这个文件夹应该包含所有需要被打包的文件。',
+        cancelId: 1,
+      });
+      if (response === 0) {
+        mainWindow.webContents.send('aam:startGeneratePackage');
+        await makePackage(packageRoot, savePath);
+        mainWindow.webContents.send('aam:stopGeneratePackage');
+      }
     }
   };
 }

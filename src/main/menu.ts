@@ -11,6 +11,7 @@ import log from 'electron-log';
 import { globalStore } from '../globalStore';
 import { loadSonglistIPC } from './utils/assets';
 import {
+  generatePackageMenuHandlerFactory,
   importBgMenuHandlerFactory,
   importSongMenuHandlerFactory,
 } from './menuHandler';
@@ -166,11 +167,11 @@ export default class MenuBuilder {
         {
           label: '生成...',
           accelerator: 'F5',
-          enabled: false,
+          click: generatePackageMenuHandlerFactory(this.mainWindow),
         },
         { type: 'separator' },
         {
-          label: '构建依赖树',
+          label: '验证依赖',
           enabled: false,
         },
       ],
@@ -280,8 +281,54 @@ export default class MenuBuilder {
         label: '文件(&F)',
         submenu: [
           {
-            label: '打开(&O)',
+            label: '打开...(%O)',
             accelerator: 'Ctrl+O',
+            click: async () => {
+              const { canceled, filePaths } = await dialog.showOpenDialog(
+                this.mainWindow,
+                {
+                  properties: ['openDirectory', 'treatPackageAsDirectory'],
+                }
+              );
+              if (!canceled) {
+                const songlist = await loadSonglistIPC(filePaths[0]);
+                if (songlist.code === 0) {
+                  this.mainWindow.webContents.send('aam:pushSongs', {
+                    path: filePaths[0],
+                    songs: songlist.data,
+                  });
+                } else {
+                  dialog.showErrorBox('错误', songlist.message);
+                }
+              }
+            },
+          },
+          {
+            label: '导入',
+            submenu: [
+              {
+                label: '歌曲(&S)',
+                accelerator: 'Ctrl+I',
+                click: importSongMenuHandlerFactory(this.mainWindow),
+              },
+              {
+                label: '歌曲（链接模式）(&L)',
+                accelerator: 'Shift+Ctrl+I',
+                click: importSongMenuHandlerFactory(this.mainWindow, true),
+              },
+              { type: 'separator' },
+              {
+                label: '背景(&B)',
+                click: importBgMenuHandlerFactory(this.mainWindow),
+              },
+            ],
+          },
+          {
+            label: '关闭文件夹(&F)',
+            accelerator: 'Shift+Ctrl+W',
+            click: () => {
+              this.mainWindow.webContents.send('aam:closeFolder');
+            },
           },
           {
             label: '关闭(&C)',
@@ -289,6 +336,21 @@ export default class MenuBuilder {
             click: () => {
               this.mainWindow.close();
             },
+          },
+        ],
+      },
+      {
+        label: '生成(&B)',
+        submenu: [
+          {
+            label: '生成...(&G)',
+            accelerator: 'F5',
+            click: generatePackageMenuHandlerFactory(this.mainWindow),
+          },
+          { type: 'separator' },
+          {
+            label: '验证依赖(&V)',
+            enabled: false,
           },
         ],
       },

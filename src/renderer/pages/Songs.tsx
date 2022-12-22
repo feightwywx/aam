@@ -1,4 +1,4 @@
-import { Table, Tag } from 'antd';
+import { Spin, Table, Tag } from 'antd';
 import type { TableColumnsType } from 'antd';
 
 import './Hello.css';
@@ -212,23 +212,33 @@ const Songs: React.FC = () => {
     onChange: onSelectChange,
   };
 
+  const [loading, setLoading] = useState(false);
+  window.aam.ipcRenderer.onStartGeneratePackage(() => {
+    setLoading(true);
+  });
+  window.aam.ipcRenderer.onStopGeneratePackage(() => {
+    setLoading(false);
+  });
+
   return (
     <>
-      <Table
-        columns={column}
-        dataSource={data}
-        size="middle"
-        scroll={{ x: 'calc(100vw - 220px)', y: 'calc(100vh - 110px)' }}
-        style={{ height: 'calc(100vh - 48px)' }}
-        pagination={{
-          // @ts-expect-error Type '"none"' is not assignable to type 'TablePaginationPosition'.
-          position: ['topLeft', 'none'],
-          showTotal: (total, range) =>
-            `${total} 曲目中的 ${range[0]}-${range[1]} `,
-          defaultPageSize: 20,
-        }}
-        rowSelection={rowSelection}
-      />
+      <Spin tip="正在打包..." spinning={loading}>
+        <Table
+          columns={column}
+          dataSource={data}
+          size="middle"
+          scroll={{ x: 'calc(100vw - 220px)', y: 'calc(100vh - 110px)' }}
+          style={{ height: 'calc(100vh - 48px)' }}
+          pagination={{
+            // @ts-expect-error Type '"none"' is not assignable to type 'TablePaginationPosition'.
+            position: ['topLeft', 'none'],
+            showTotal: (total, range) =>
+              `${total} 曲目中的 ${range[0]}-${range[1]} `,
+            defaultPageSize: 20,
+          }}
+          rowSelection={rowSelection}
+        />
+      </Spin>
     </>
   );
 };

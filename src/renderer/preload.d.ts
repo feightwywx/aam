@@ -33,6 +33,12 @@ declare global {
             args: { path: string; songs: Song[] }
           ) => void
         ) => void;
+        onStartGeneratePackage: (
+          callback: (event: Event, args: unknown) => void
+        ) => void;
+        onStopGeneratePackage: (
+          callback: (event: Event, args: unknown) => void
+        ) => void;
       };
     };
   }

@@ -25,5 +25,15 @@ contextBridge.exposeInMainWorld('aam', {
     onPushSongs: (callback: (event: Event, args: unknown) => void) => {
       ipcRenderer.on('aam:pushSongs', callback);
     },
+    onStartGeneratePackage: (
+      callback: (event: Event, args: unknown) => void
+    ) => {
+      ipcRenderer.on('aam:startGeneratePackage', callback);
+    },
+    onStopGeneratePackage: (
+      callback: (event: Event, args: unknown) => void
+    ) => {
+      ipcRenderer.on('aam:stopGeneratePackage', callback);
+    },
   },
 });
