@@ -93,6 +93,23 @@ const createWindow = async () => {
     }
   });
 
+  mainWindow.on('close', (e) => {
+    if (mainWindow) {
+      const response = dialog.showMessageBoxSync(mainWindow, {
+        message: '要退出吗？',
+        type: 'question',
+        buttons: ['好', '取消'],
+        defaultId: 0,
+        title: '退出',
+        detail: '所有更改已自动保存。',
+        cancelId: 1,
+      });
+      if (response === 1) {
+        e.preventDefault();
+      }
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -116,11 +133,7 @@ const createWindow = async () => {
  */
 
 app.on('window-all-closed', () => {
-  // Respect the OSX convention of having the application in memory even
-  // after all windows have been closed
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app
@@ -131,11 +144,6 @@ app
       .catch((err) => console.log('An error occurred: ', err));
 
     createWindow();
-    app.on('activate', () => {
-      // On macOS it's common to re-create a window in the app when the
-      // dock icon is clicked and there are no other windows open.
-      if (mainWindow === null) createWindow();
-    });
 
     ipcMain.on('electron-store-get', async (event, val) => {
       event.returnValue = globalStore.get(val);
