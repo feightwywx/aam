@@ -105,7 +105,6 @@
     "electron-redux": "^1.5.4",
     "electron-store": "^8.1.0",
     "electron-updater": "^5.2.3",
-    "jszip": "^3.10.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",

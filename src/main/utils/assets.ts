@@ -2,13 +2,12 @@ import path from 'path';
 import fs from 'fs';
 import fsAsync from 'fs/promises';
 import log from 'electron-log';
-import JSZip from 'jszip';
 import archiver from 'archiver';
+import { app, BrowserWindow, dialog } from 'electron';
 
 import { makeSuccessResp, makeFailResp } from './ipcResponse';
 import type { Song } from '../../type';
 import { buildSrcSongDepList } from './songDeps';
-import { app, BrowserWindow, dialog } from 'electron';
 
 export async function loadSonglistIPC(assetsPath: string) {
   log.info(`loadSonglistIPC(): assets: ${assetsPath}`);
@@ -103,25 +102,20 @@ export async function makePackage(
     log.error(e);
     dialog.showErrorBox('打包错误', e.toString());
   });
-  log.info(`已生成 ${tmpPackagePath}`);
 
-  log.info(`复制到${dest}`);
-  if (fs.existsSync(tmpPackagePath)) {
-    fsAsync
-      .copyFile(tmpPackagePath, dest)
-      // eslint-disable-next-line promise/always-return
-      .then(() => {
-        dialog.showMessageBox({
-          message: '导出成功',
-          detail: `已导出：${dest}`,
-        });
-      })
-      .finally(() => {
-        fsAsync.rm(tmpDir, { recursive: true });
-      })
-      .catch((e: Error) => {
-        log.error(e);
-        dialog.showErrorBox('打包错误', e.toString());
+  // 文件流关闭时触发复制
+  output.on('close', () => {
+    try {
+      fs.copyFileSync(tmpPackagePath, dest);
+      dialog.showMessageBox({
+        message: '导出成功',
+        detail: `已导出：${dest}`,
       });
-  }
+    } catch (e) {
+      log.error(e);
+      dialog.showErrorBox('打包错误', (e as Error).toString());
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true });
+    }
+  });
 }
