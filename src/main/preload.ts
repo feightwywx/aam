@@ -35,5 +35,8 @@ contextBridge.exposeInMainWorld('aam', {
     ) => {
       ipcRenderer.on('aam:stopGeneratePackage', callback);
     },
+    onLog: (callback: (event: Event, args: string) => void) => {
+      ipcRenderer.on('aam:log', callback);
+    },
   },
 });

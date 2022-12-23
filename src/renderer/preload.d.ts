@@ -39,6 +39,7 @@ declare global {
         onStopGeneratePackage: (
           callback: (event: Event, args: unknown) => void
         ) => void;
+        onLog: (callback: (event: Event, args: string) => void) => void;
       };
     };
   }

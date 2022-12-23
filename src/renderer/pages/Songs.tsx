@@ -4,7 +4,7 @@ import type { TableColumnsType } from 'antd';
 import './Hello.css';
 import { useNavigate } from 'react-router-dom';
 import { Song, SongDifficulty } from 'type';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { TableRowSelection } from 'antd/es/table/interface';
 
 import { useAppDispatch, useAppSelector } from '../store';
@@ -213,16 +213,25 @@ const Songs: React.FC = () => {
   };
 
   const [loading, setLoading] = useState(false);
-  window.aam.ipcRenderer.onStartGeneratePackage(() => {
-    setLoading(true);
-  });
-  window.aam.ipcRenderer.onStopGeneratePackage(() => {
-    setLoading(false);
-  });
+  const [log, setLog] = useState('');
+
+  useEffect(() => {
+    window.aam.ipcRenderer.onStartGeneratePackage(() => {
+      setLog('');
+      setLoading(true);
+    });
+    window.aam.ipcRenderer.onStopGeneratePackage(() => {
+      setLoading(false);
+      setLog('');
+    });
+    window.aam.ipcRenderer.onLog((_, args) => {
+      setLog(args);
+    });
+  }, []);
 
   return (
     <>
-      <Spin tip="正在打包..." spinning={loading}>
+      <Spin tip={`正在打包...${log}`} spinning={loading}>
         <Table
           columns={column}
           dataSource={data}

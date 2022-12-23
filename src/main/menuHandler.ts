@@ -123,9 +123,7 @@ export function generatePackageMenuHandlerFactory(mainWindow: BrowserWindow) {
         cancelId: 1,
       });
       if (response === 0) {
-        mainWindow.webContents.send('aam:startGeneratePackage');
-        await makePackage(packageRoot, savePath);
-        mainWindow.webContents.send('aam:stopGeneratePackage');
+        makePackage(packageRoot, savePath, mainWindow);
       }
     }
   };

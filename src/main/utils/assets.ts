@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import fsAsync from 'fs/promises';
 import log from 'electron-log';
-import archiver from 'archiver';
+import archiver, { ProgressData } from 'archiver';
 import { app, BrowserWindow, dialog } from 'electron';
 
 import { makeSuccessResp, makeFailResp } from './ipcResponse';
@@ -82,6 +82,7 @@ export async function makePackage(
   mainWindow?: BrowserWindow
 ): Promise<string | void> {
   log.info(`makePackage(): ${src} -> ${dest}`);
+  mainWindow?.webContents.send('aam:startGeneratePackage');
   const sysTemp = app.getPath('temp');
   const tmpDir = fs.mkdtempSync(path.join(sysTemp, 'aam-assets-'));
   const tmpPackagePath = path.join(tmpDir, path.basename(dest));
@@ -98,24 +99,69 @@ export async function makePackage(
       archive.directory(fullRootAssetPath, rootAsset);
     }
   }
+
+  const parseSize = (size: number) => {
+    if (size < 1024) {
+      return `${size} B`;
+    }
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(2)} KB`;
+    }
+    if (size < 1024 * 1024 * 1024) {
+      return `${(size / 1024 / 1024).toFixed(2)} MB`;
+    }
+    return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
+  };
+
+  let lastReport = Date.now();
+  archive.on('entry', () => {
+    const now = Date.now();
+    if (now - lastReport > 1000) {
+      const size = archive.pointer();
+      mainWindow?.webContents.send('aam:log', parseSize(size));
+      lastReport = Date.now();
+    }
+  });
+
+  // const progressHandler = (e: ProgressData) => {
+  //   log.debug(`${e.entries.processed} entries / ${e.fs.processedBytes} bytes`);
+  //   mainWindow?.webContents.send(
+  //     'aam:log',
+  //     `${(e.fs.processedBytes / 1024 / 1024).toLocaleString(undefined, {
+  //       maximumFractionDigits: 2,
+  //     })} MB`
+  //   );
+  //   setTimeout(() => {
+  //     archive.once('progress', progressHandler);
+  //   }, 1000);
+  // };
+  // archive.once('progress', progressHandler);
+
   await archive.finalize().catch((e: Error) => {
     log.error(e);
     dialog.showErrorBox('打包错误', e.toString());
   });
 
-  // 文件流关闭时触发复制
-  output.on('close', () => {
-    try {
-      fs.copyFileSync(tmpPackagePath, dest);
-      dialog.showMessageBox({
-        message: '导出成功',
-        detail: `已导出：${dest}`,
-      });
-    } catch (e) {
-      log.error(e);
-      dialog.showErrorBox('打包错误', (e as Error).toString());
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true });
-    }
+  await new Promise<void>((resolve) => {
+    // 文件流关闭时触发复制
+    output.once('close', () => {
+      try {
+        mainWindow?.webContents.send('aam:log', '即将完成...');
+        log.info(`打包完成，复制文件 ${tmpPackagePath} -> ${dest}`);
+        fs.copyFileSync(tmpPackagePath, dest);
+        mainWindow?.webContents.send('aam:stopGeneratePackage');
+        dialog.showMessageBox({
+          message: '导出成功',
+          detail: `已导出：${dest}`,
+        });
+        resolve();
+      } catch (e) {
+        log.error(e);
+        dialog.showErrorBox('打包错误', (e as Error).toString());
+      } finally {
+        log.info(`清理 ${tmpDir}`);
+        fs.rmSync(tmpDir, { recursive: true });
+      }
+    });
   });
 }

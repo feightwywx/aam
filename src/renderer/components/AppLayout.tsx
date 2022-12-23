@@ -2,14 +2,11 @@ import { Layout, Menu, theme } from 'antd';
 import type { MenuProps } from 'antd';
 import PropTypes from 'prop-types';
 import { useAppDispatch, useAppSelector } from 'renderer/store';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useRoutes } from 'react-router-dom';
 import { setPath, setSongs } from 'stateSlices/assets';
 import { useEffect } from 'react';
 
-export const MainMenu: MenuProps['items'] = [
-  { key: 'song', label: '曲目' },
-  { key: 'bg', label: '背景' },
-];
+export const MainMenu: MenuProps['items'] = [{ key: 'songs', label: '曲目' }];
 
 export const AppLayout: React.FC<{
   children: React.ReactNode;
@@ -23,6 +20,8 @@ export const AppLayout: React.FC<{
   const assets = useAppSelector((state) => state.assets);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log(location.pathname);
 
   useEffect(() => {
     window.electron.ipcRenderer.store.set('assets', assets);
@@ -31,15 +30,18 @@ export const AppLayout: React.FC<{
     }
   }, [assets, navigate]);
 
-  window.aam.ipcRenderer.onCloseFolder(() => {
-    dispatch(setPath(''));
-    navigate('/');
-  });
+  // 注册ipc listener
+  useEffect(() => {
+    window.aam.ipcRenderer.onCloseFolder(() => {
+      dispatch(setPath(''));
+      navigate('/');
+    });
 
-  window.aam.ipcRenderer.onPushSongs((_, args) => {
-    dispatch(setPath(args.path));
-    dispatch(setSongs(args.songs));
-    navigate('/songs');
+    window.aam.ipcRenderer.onPushSongs((_, args) => {
+      dispatch(setPath(args.path));
+      dispatch(setSongs(args.songs));
+      navigate('/songs');
+    });
   });
 
   return (
@@ -53,7 +55,17 @@ export const AppLayout: React.FC<{
         }}
         hidden={siderHidden || path === ''}
       >
-        <Menu theme="light" items={MainMenu} tabIndex={-1} />
+        <Menu
+          theme="light"
+          items={MainMenu}
+          tabIndex={-1}
+          selectedKeys={MainMenu.map((item) => {
+            if (item && location.pathname === `/${item.key}`) {
+              return `${item.key}`;
+            }
+            return '';
+          })}
+        />
       </Layout.Sider>
       <Layout
         style={{

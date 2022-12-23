@@ -94,7 +94,7 @@ const createWindow = async () => {
   });
 
   mainWindow.on('close', (e) => {
-    if (mainWindow) {
+    if (mainWindow && !isDebug) {
       const response = dialog.showMessageBoxSync(mainWindow, {
         message: '要退出吗？',
         type: 'question',
