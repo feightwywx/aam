@@ -113,17 +113,38 @@ export function generatePackageMenuHandlerFactory(mainWindow: BrowserWindow) {
         saveExt === '.ipa' ? '../..' : '..'
       );
 
-      const { response } = await dialog.showMessageBox(mainWindow, {
-        message: `确定包路径为 ${packageRoot} 吗？`,
-        type: 'question',
-        buttons: ['好', '取消'],
-        defaultId: 0,
-        title: '确认包路径',
-        detail: '这个文件夹应该包含所有需要被打包的文件。',
-        cancelId: 1,
+      const songs = globalStore.get('assets.songs') as Song[];
+      const songCopyPromises = songs.map((song) => {
+        if (song._external) {
+          log.info(`外置依赖 ${song._external}`);
+          return importSong(song._external, assetsPath);
+        }
+        return new Promise<void>((resolve) => {
+          resolve();
+        });
       });
-      if (response === 0) {
-        makePackage(packageRoot, savePath, mainWindow);
+      const copyExtResult = await Promise.allSettled(songCopyPromises).catch(
+        (e) => {
+          dialog.showErrorBox('外部文件复制失败', e.message);
+        }
+      );
+
+      if (
+        copyExtResult &&
+        copyExtResult.filter((r) => r.status === 'rejected').length < 1
+      ) {
+        const { response } = await dialog.showMessageBox(mainWindow, {
+          message: `确定包路径为 ${packageRoot} 吗？`,
+          type: 'question',
+          buttons: ['好', '取消'],
+          defaultId: 0,
+          title: '确认包路径',
+          detail: '这个文件夹应该包含所有需要被打包的文件。',
+          cancelId: 1,
+        });
+        if (response === 0) {
+          makePackage(packageRoot, savePath, mainWindow);
+        }
       }
     }
   };

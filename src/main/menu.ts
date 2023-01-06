@@ -169,11 +169,11 @@ export default class MenuBuilder {
           accelerator: 'F5',
           click: generatePackageMenuHandlerFactory(this.mainWindow),
         },
-        { type: 'separator' },
-        {
-          label: '验证依赖',
-          enabled: false,
-        },
+        // { type: 'separator' },
+        // {
+        //   label: '验证依赖',
+        //   enabled: false,
+        // },
       ],
     };
     const subMenuViewDev: MenuItemConstructorOptions = {
@@ -347,11 +347,11 @@ export default class MenuBuilder {
             accelerator: 'F5',
             click: generatePackageMenuHandlerFactory(this.mainWindow),
           },
-          { type: 'separator' },
-          {
-            label: '验证依赖(&V)',
-            enabled: false,
-          },
+          // { type: 'separator' },
+          // {
+          //   label: '验证依赖(&V)',
+          //   enabled: false,
+          // },
         ],
       },
       {
