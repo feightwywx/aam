@@ -3,6 +3,19 @@
 
 一个[Arcaea](https://arcaea.lowiro.com/)资产管理器。
 
+## 功能
+
+- 资产导入
+  - 曲目导入，支持每次打包时自动更新曲目资源
+  - 背景导入
+- 打包
+  - ipa和apk打包
+  - 依赖验证，检查可能被漏打包的文件
+
+## 使用方法
+
+[看这里](https://www.direcore.xyz/archives/43/)
+
 ## Troubleshooting
 
 ### Linux
