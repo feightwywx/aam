@@ -53,7 +53,7 @@ export default class MenuBuilder {
 
       Menu.buildFromTemplate([
         {
-          label: 'Inspect element',
+          label: '审查元素',
           click: () => {
             this.mainWindow.webContents.inspectElement(x, y);
           },
@@ -95,34 +95,43 @@ export default class MenuBuilder {
           },
         },
         {
+          id: 'file.import',
           label: '导入',
           submenu: [
             {
+              id: 'file.import.song',
               label: '歌曲',
               accelerator: 'Command+I',
               click: importSongMenuHandlerFactory(this.mainWindow),
+              enabled: false,
             },
             {
+              id: 'file.import.songLink',
               label: '歌曲（链接模式）',
               accelerator: 'Shift+Command+I',
               click: importSongMenuHandlerFactory(this.mainWindow, true),
+              enabled: false,
             },
             { type: 'separator' },
             {
+              id: 'file.import.bg',
               label: '背景',
               click: importBgMenuHandlerFactory(this.mainWindow),
+              enabled: false,
             },
           ],
         },
         {
+          id: 'file.closeFolder',
           label: '关闭文件夹',
           accelerator: 'Shift+Command+W',
           click: () => {
             this.mainWindow.webContents.send('aam:closeFolder');
           },
+          enabled: false,
         },
         { type: 'separator' },
-        { label: '服务', submenu: [] },
+        { label: '服务', role: 'services', submenu: [] },
         { type: 'separator' },
         {
           label: '隐藏 AAM',
@@ -162,12 +171,15 @@ export default class MenuBuilder {
       ],
     };
     const subMenuBuild: DarwinMenuItemConstructorOptions = {
+      id: 'build',
       label: '生成',
       submenu: [
         {
+          id: 'build.build',
           label: '生成...',
           accelerator: 'F5',
           click: generatePackageMenuHandlerFactory(this.mainWindow),
+          enabled: false,
         },
         // { type: 'separator' },
         // {
@@ -216,6 +228,7 @@ export default class MenuBuilder {
     };
     const subMenuWindow: DarwinMenuItemConstructorOptions = {
       label: '窗口',
+      role: 'window',
       submenu: [
         {
           label: '最小化',
@@ -229,31 +242,12 @@ export default class MenuBuilder {
     };
     const subMenuHelp: MenuItemConstructorOptions = {
       label: '帮助',
+      role: 'help',
       submenu: [
         {
           label: '了解更多',
           click() {
-            shell.openExternal('https://electronjs.org');
-          },
-        },
-        {
-          label: '文档',
-          click() {
-            shell.openExternal(
-              'https://github.com/electron/electron/tree/main/docs#readme'
-            );
-          },
-        },
-        {
-          label: '在社区中讨论',
-          click() {
-            shell.openExternal('https://www.electronjs.org/community');
-          },
-        },
-        {
-          label: '搜索问题',
-          click() {
-            shell.openExternal('https://github.com/electron/electron/issues');
+            shell.openExternal('https://github.com/feightwywx/aam');
           },
         },
       ],
@@ -281,7 +275,7 @@ export default class MenuBuilder {
         label: '文件(&F)',
         submenu: [
           {
-            label: '打开...(%O)',
+            label: '打开...(&O)',
             accelerator: 'Ctrl+O',
             click: async () => {
               const { canceled, filePaths } = await dialog.showOpenDialog(
@@ -402,27 +396,7 @@ export default class MenuBuilder {
           {
             label: '了解更多',
             click() {
-              shell.openExternal('https://electronjs.org');
-            },
-          },
-          {
-            label: '文档',
-            click() {
-              shell.openExternal(
-                'https://github.com/electron/electron/tree/main/docs#readme'
-              );
-            },
-          },
-          {
-            label: '在社区中讨论',
-            click() {
-              shell.openExternal('https://www.electronjs.org/community');
-            },
-          },
-          {
-            label: '搜索问题',
-            click() {
-              shell.openExternal('https://github.com/electron/electron/issues');
+              shell.openExternal('https://github.com/feightwywx/aam');
             },
           },
         ],

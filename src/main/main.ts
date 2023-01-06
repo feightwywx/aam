@@ -115,7 +115,18 @@ const createWindow = async () => {
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
+  const menu = menuBuilder.buildMenu();
+
+  globalStore.onDidChange('assets.path', (newValue) => {
+    log.debug(!!newValue, menu.getMenuItemById('file.import')?.enabled)
+    menu.getMenuItemById('file.import.song')!.enabled = !!newValue;
+    menu.getMenuItemById('file.import.songLink')!.enabled = !!newValue;
+    menu.getMenuItemById('file.import.bg')!.enabled = !!newValue;
+
+    menu.getMenuItemById('file.closeFolder')!.enabled = !!newValue;
+
+    menu.getMenuItemById('build.build')!.enabled = !!newValue;
+  });
 
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {

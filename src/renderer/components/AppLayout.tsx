@@ -42,7 +42,7 @@ export const AppLayout: React.FC<{
       dispatch(setSongs(args.songs));
       navigate('/songs');
     });
-  });
+  }, [dispatch, navigate]);
 
   return (
     <Layout hasSider style={{ backgroundColor: colorBgContainer }}>
