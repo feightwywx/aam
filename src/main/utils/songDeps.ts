@@ -15,6 +15,15 @@ export async function buildSrcSongDepList(song: Song): Promise<string[]> {
     if (diff.rating >= 0) {
       deps.push(`${diff.ratingClass}.aff`);
     }
+
+    if (diff.jacketOverride) {
+      deps.push(`${diff.ratingClass}.jpg`);
+      deps.push(`${diff.ratingClass}_256.jpg`);
+    }
+
+    if (diff.audioOverride) {
+      deps.push(`${diff.ratingClass}.ogg`);
+    }
   });
 
   return deps;
