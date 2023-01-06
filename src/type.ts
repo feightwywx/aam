@@ -20,6 +20,7 @@ export interface SongBase {
   audioPreviewEnd: number;
   side: 0 | 1 | 2;
   bg: string;
+  remote_dl: boolean;
   date: number;
   version: string;
   difficulties: SongDifficulty[];
@@ -35,4 +36,15 @@ export interface SongDifficulty {
   jacketDesigner: string;
   rating: number;
   ratingPlus?: boolean;
+  jacketOverride?: boolean;
+  audioOverride?: boolean;
+}
+
+export interface Songlist {
+  songs: Song[];
+}
+
+export interface AssetDependence {
+  dep: string;
+  sourceID: string;
 }

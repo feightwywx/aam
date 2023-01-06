@@ -14,6 +14,7 @@ import {
   generatePackageMenuHandlerFactory,
   importBgMenuHandlerFactory,
   importSongMenuHandlerFactory,
+  verifyMenuHandlerFactory,
 } from './menuHandler';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
@@ -181,11 +182,14 @@ export default class MenuBuilder {
           click: generatePackageMenuHandlerFactory(this.mainWindow),
           enabled: false,
         },
-        // { type: 'separator' },
-        // {
-        //   label: '验证依赖',
-        //   enabled: false,
-        // },
+        { type: 'separator' },
+        {
+          id: 'build.verify',
+          label: '验证依赖',
+          accelerator: 'F6',
+          click: verifyMenuHandlerFactory(this.mainWindow),
+          enabled: false,
+        },
       ],
     };
     const subMenuViewDev: MenuItemConstructorOptions = {
@@ -298,31 +302,40 @@ export default class MenuBuilder {
             },
           },
           {
+            id: 'file.import',
             label: '导入',
             submenu: [
               {
+                id: 'file.import.song',
                 label: '歌曲(&S)',
                 accelerator: 'Ctrl+I',
                 click: importSongMenuHandlerFactory(this.mainWindow),
+                enabled: false,
               },
               {
+                id: 'file.import.songLink',
                 label: '歌曲（链接模式）(&L)',
                 accelerator: 'Shift+Ctrl+I',
                 click: importSongMenuHandlerFactory(this.mainWindow, true),
+                enabled: false,
               },
               { type: 'separator' },
               {
+                id: 'file.import.bg',
                 label: '背景(&B)',
                 click: importBgMenuHandlerFactory(this.mainWindow),
+                enabled: false,
               },
             ],
           },
           {
+            id: 'file.closeFolder',
             label: '关闭文件夹(&F)',
             accelerator: 'Shift+Ctrl+W',
             click: () => {
               this.mainWindow.webContents.send('aam:closeFolder');
             },
+            enabled: false,
           },
           {
             label: '关闭(&C)',
@@ -337,15 +350,20 @@ export default class MenuBuilder {
         label: '生成(&B)',
         submenu: [
           {
+            id: 'build.build',
             label: '生成...(&G)',
             accelerator: 'F5',
             click: generatePackageMenuHandlerFactory(this.mainWindow),
+            enabled: false,
           },
-          // { type: 'separator' },
-          // {
-          //   label: '验证依赖(&V)',
-          //   enabled: false,
-          // },
+          { type: 'separator' },
+          {
+            id: 'build.verify',
+            label: '验证依赖(&V)',
+            accelerator: 'F6',
+            click: verifyMenuHandlerFactory(this.mainWindow),
+            enabled: false,
+          },
         ],
       },
       {

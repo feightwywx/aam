@@ -1,11 +1,13 @@
 import { BrowserWindow, dialog } from 'electron';
 import fs from 'fs';
+import fsAsync from 'fs/promises';
 import path from 'path';
 import log from 'electron-log';
 
-import type { Song } from 'type';
+import type { AssetDependence, Song, Songlist } from 'type';
 import { globalStore } from '../globalStore';
 import { importSong, makePackage, mergeSonglist } from './utils/assets';
+import { buildAssetsSongDepList } from './utils/songDeps';
 
 export function importSongMenuHandlerFactory(
   mainWindow: BrowserWindow,
@@ -139,7 +141,8 @@ export function generatePackageMenuHandlerFactory(mainWindow: BrowserWindow) {
           buttons: ['好', '取消'],
           defaultId: 0,
           title: '确认包路径',
-          detail: '这个文件夹应该包含所有需要被打包的文件。',
+          detail:
+            '这个文件夹应该包含所有需要被打包的文件。\n\n此外，强烈建议您在打包之前进行依赖验证。',
           cancelId: 1,
         });
         if (response === 0) {
@@ -147,5 +150,56 @@ export function generatePackageMenuHandlerFactory(mainWindow: BrowserWindow) {
         }
       }
     }
+  };
+}
+
+export function verifyMenuHandlerFactory(mainWindow: BrowserWindow) {
+  return async () => {
+    const assetsPath = globalStore.get('assets.path') as string;
+    const songsPath = path.join(assetsPath, 'songs');
+    const songlistPath = path.join(songsPath, 'songlist');
+
+    const songlistFile = await fsAsync.readFile(songlistPath);
+    const songlist = JSON.parse(songlistFile.toString()) as Songlist;
+
+    const songlistDepPromises = songlist.songs.map((song) => {
+      return buildAssetsSongDepList(song);
+    });
+
+    const songlistDeps = await Promise.all(songlistDepPromises);
+    log.debug(songlistDeps);
+    const flattenDeps = songlistDeps.flat();
+
+    const errPath: AssetDependence[] = [];
+    flattenDeps.forEach((dep) => {
+      if (!fs.existsSync(path.join(assetsPath, dep.dep))) {
+        errPath.push(dep);
+      }
+    });
+
+    let dialogType = 'info';
+    let errCount = 0;
+    const errHints: string[] = [];
+    errPath.forEach((err) => {
+      if (err.dep.endsWith('3.aff')) {
+        dialogType = 'warning';
+        errHints.push(
+          `[W] ${err.sourceID} 的Beyond难度已定义但是谱面不存在，可能需要在线加载。`
+        );
+      } else {
+        dialogType = 'error';
+        errCount += 1;
+        errHints.unshift(`[E] ${err.sourceID} 需要 ${err.dep}，但是它不存在。`);
+      }
+    });
+
+    dialog.showMessageBox(mainWindow, {
+      message:
+        errPath.length === 0
+          ? '没有检测到依赖问题。'
+          : `检测到以下问题，其中有 ${errCount} 个错误。`,
+      detail: errHints.join('\n'),
+      type: dialogType,
+    });
   };
 }

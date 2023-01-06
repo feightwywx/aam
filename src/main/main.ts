@@ -126,6 +126,7 @@ const createWindow = async () => {
     menu.getMenuItemById('file.closeFolder')!.enabled = !!newValue;
 
     menu.getMenuItemById('build.build')!.enabled = !!newValue;
+    menu.getMenuItemById('build.verify')!.enabled = !!newValue;
   });
 
   // Open urls in the user's browser
