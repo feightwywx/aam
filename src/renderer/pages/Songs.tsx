@@ -12,6 +12,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   ImportOutlined,
+  ReloadOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
 
@@ -72,6 +73,8 @@ const Songs: React.FC = () => {
       width: 150,
       fixed: 'left',
       ellipsis: true,
+      sorter: (a, b) => a.id.localeCompare(b.id),
+      sortDirections: ['ascend', 'descend'],
       render: ({ id, ext }) => {
         return (
           <>
@@ -96,6 +99,9 @@ const Songs: React.FC = () => {
       key: 'title_localized',
       width: 250,
       ellipsis: true,
+      sorter: (a, b) =>
+        a.title_localized.en.localeCompare(b.title_localized.en, 'ja'),
+      sortDirections: ['ascend', 'descend'],
       render: (title: { en: string; ja?: string }) => (
         <>
           <Tag>EN</Tag>
@@ -116,12 +122,35 @@ const Songs: React.FC = () => {
       key: 'artist',
       width: 200,
       ellipsis: true,
+      sorter: (a, b) => a.artist.localeCompare(b.artist, 'ja'),
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: '谱面',
       dataIndex: 'difficulties',
       key: 'difficulties',
       width: 100,
+      filters: [
+        {
+          text: 'Past',
+          value: 0,
+        },
+        {
+          text: 'Present',
+          value: 1,
+        },
+        {
+          text: 'Future',
+          value: 2,
+        },
+        {
+          text: 'Beyond',
+          value: 3,
+        },
+      ],
+      onFilter: (value, record) =>
+        record.difficulties.filter((x) => x.ratingClass === value).length > 0,
+      // TODO 谱面难度排序
       render: (diffs: SongDifficulty[]) => {
         return diffs.map((diff) => {
           if (diff.rating < 0) return <></>;
@@ -131,9 +160,13 @@ const Songs: React.FC = () => {
               color={convertRatingClassColor(diff.ratingClass)}
               style={{ marginTop: 2, marginBottom: 2 }}
             >
-              {convertRatingClass(diff.ratingClass)}{' '}
-              {diff.rating === 0 ? '?' : diff.rating}
-              {diff.ratingPlus ? '+' : ''}
+              <span
+                title={`曲封：${diff.jacketDesigner}\n谱面：${diff.chartDesigner}`}
+              >
+                {convertRatingClass(diff.ratingClass)}{' '}
+                {diff.rating === 0 ? '?' : diff.rating}
+                {diff.ratingPlus ? '+' : ''}
+              </span>
             </Tag>
           );
         });
@@ -145,18 +178,37 @@ const Songs: React.FC = () => {
       key: 'bpm_combine',
       width: 120,
       ellipsis: true,
+      sorter: (a, b) => a.bpm_base - b.bpm_base,
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: '曲包',
       dataIndex: 'set',
       key: 'set',
       width: 100,
+      sorter: (a, b) => a.set.localeCompare(b.set),
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: '侧',
       dataIndex: 'side',
       key: 'side',
       width: 80,
+      filters: [
+        {
+          text: '光芒',
+          value: 0,
+        },
+        {
+          text: '纷争',
+          value: 1,
+        },
+        {
+          text: '消色',
+          value: 2,
+        },
+      ],
+      onFilter: (value, record) => record.side === value,
       render: (side) => {
         if (side === 0) {
           return <Tag>光芒</Tag>;
@@ -176,12 +228,16 @@ const Songs: React.FC = () => {
       key: 'bg',
       width: 150,
       ellipsis: true,
+      sorter: (a, b) => a.bg.localeCompare(b.bg),
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: '日期',
       dataIndex: 'date',
       key: 'date',
       width: 150,
+      sorter: (a, b) => a.date - b.date,
+      sortDirections: ['ascend', 'descend'],
       render: (date) => (
         <span title={date}>{new Date(date * 1000).toLocaleString()}</span>
       ),
@@ -191,6 +247,8 @@ const Songs: React.FC = () => {
       dataIndex: 'version',
       key: 'version',
       width: 80,
+      sorter: (a, b) => a.version.localeCompare(b.version),
+      sortDirections: ['ascend', 'descend'],
     },
   ];
 
@@ -257,6 +315,10 @@ const Songs: React.FC = () => {
                 alignItems: 'center',
               }}
             >
+              <Button type="text" size="small">
+                <ReloadOutlined />
+                刷新
+              </Button>
               <Button type="text" size="small">
                 <EditOutlined />
                 编辑JSON

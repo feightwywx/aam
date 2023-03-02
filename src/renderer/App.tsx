@@ -12,7 +12,6 @@ import store from './store';
 
 export default function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-  console.log(prefersDarkMode);
 
   return (
     <ReduxProvider store={store}>
