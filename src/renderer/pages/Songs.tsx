@@ -266,6 +266,87 @@ const Songs: React.FC = () => {
     }));
   }
 
+  const [searchValue, setSearchValue] = useState('');
+  const filteredData = data.filter((song) => {
+    const cons = searchValue.split(' ');
+
+    function parseCon(con: string): boolean {
+      if (con.length === 0) return true;
+
+      if (song.id.toLocaleLowerCase().includes(con.toLocaleLowerCase()))
+        return true;
+      if (
+        song.title_localized.en
+          .toLocaleLowerCase()
+          .includes(con.toLocaleLowerCase())
+      )
+        return true;
+      if (
+        song.title_localized.ja
+          ?.toLocaleLowerCase()
+          ?.includes(con.toLocaleLowerCase())
+      )
+        return true;
+      if (song.artist.toLocaleLowerCase().includes(con.toLocaleLowerCase()))
+        return true;
+      if (song.set.toLocaleLowerCase().includes(con.toLocaleLowerCase()))
+        return true;
+      if (song.bg.toLocaleLowerCase().includes(con.toLocaleLowerCase()))
+        return true;
+      if (song.version.toLocaleLowerCase().includes(con.toLocaleLowerCase()))
+        return true;
+
+      function shortDiffNameToRatingClass(name: string) {
+        switch (name) {
+          case 'pst':
+            return 0;
+          case 'prs':
+            return 1;
+          case 'ftr':
+            return 2;
+          case 'byd':
+            return 3;
+          default:
+            return -1;
+        }
+      }
+      if (
+        (con.startsWith('pst') ||
+          con.startsWith('prs') ||
+          con.startsWith('ftr') ||
+          con.startsWith('byd') ||
+          con.startsWith('any')) &&
+        song.difficulties.filter(
+          (diff) =>
+            diff.rating ===
+              +(con.endsWith('+')
+                ? con.substring(3, con.length - 1)
+                : con.substring(3, con.length)) &&
+            (diff.ratingPlus
+              ? diff.ratingPlus === con.endsWith('+')
+              : con.endsWith('+') === false) &&
+            (con.startsWith('any')
+              ? true
+              : diff.ratingClass ===
+                shortDiffNameToRatingClass(con.substring(0, 3)))
+        ).length > 0
+      )
+        return true;
+
+      return false;
+    }
+
+    const result = cons.map(parseCon).reduce((a, b) => a && b);
+    // if (song.title_localized.en === 'Tempestissimo') {
+    //   console.log(cons);
+    //   console.log(cons.map(parseCon));
+    //   console.log(cons.map(parseCon).reduce((a, b) => a && b));
+    //   console.log(song);
+    // }
+
+    return result;
+  });
+
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
@@ -344,12 +425,17 @@ const Songs: React.FC = () => {
                 prefix={<SearchOutlined />}
                 allowClear
                 style={{ width: '250px' }}
+                value={searchValue}
+                placeholder="例：base ftr9+/any11"
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                }}
               />
             </div>
           </div>
           <Table
             columns={column}
-            dataSource={data}
+            dataSource={filteredData}
             size="middle"
             scroll={{ y: 'calc(100vh - 30px - 58px)' }}
             pagination={false}
