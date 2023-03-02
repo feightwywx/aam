@@ -1,12 +1,17 @@
-import { Layout, Menu, theme } from 'antd';
+import { Button, Layout, Menu, theme } from 'antd';
 import type { MenuProps } from 'antd';
 import PropTypes from 'prop-types';
 import { useAppDispatch, useAppSelector } from 'renderer/store';
 import { useLocation, useNavigate, useRoutes } from 'react-router-dom';
 import { setPath, setSongs } from 'stateSlices/assets';
 import { useEffect } from 'react';
+import { AlignLeftOutlined, PictureOutlined, SettingOutlined } from '@ant-design/icons';
 
-export const MainMenu: MenuProps['items'] = [{ key: 'songs', label: '曲目' }];
+export const MainMenu: MenuProps['items'] = [
+  { key: 'songs', label: '曲目', icon: <AlignLeftOutlined /> },
+  { key: 'bg', label: '背景', icon: <PictureOutlined />, disabled: true },
+  { key: 'setting', label: '设置', icon: <SettingOutlined />, disabled: true}
+];
 
 export const AppLayout: React.FC<{
   children: React.ReactNode;
@@ -45,18 +50,23 @@ export const AppLayout: React.FC<{
   }, [dispatch, navigate]);
 
   return (
-    <Layout hasSider style={{ backgroundColor: colorBgContainer }}>
+    <Layout style={{ backgroundColor: colorBgContainer }}>
       <Layout.Sider
         style={{
           backgroundColor: colorBgContainer,
-          paddingTop: 32,
-          position: 'fixed',
-          height: '100vh',
+          padding: 0,
+          position: 'sticky',
+          top: '0',
+          zIndex: 999,
         }}
         hidden={siderHidden || path === ''}
+        collapsible
+        defaultCollapsed
+        theme="light"
       >
         <Menu
           theme="light"
+          mode="vertical"
           items={MainMenu}
           tabIndex={-1}
           selectedKeys={MainMenu.map((item) => {
@@ -69,9 +79,9 @@ export const AppLayout: React.FC<{
       </Layout.Sider>
       <Layout
         style={{
-          minHeight: '100vh',
+          display: 'flex',
+          height: '100%',
           backgroundColor: colorBgContainer,
-          marginLeft: siderHidden || path === '' ? 0 : 200,
         }}
       >
         <Layout.Content>{children}</Layout.Content>

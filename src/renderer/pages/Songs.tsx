@@ -1,4 +1,4 @@
-import { Spin, Table, Tag } from 'antd';
+import { Button, Input, Menu, Space, Spin, Table, Tag, theme } from 'antd';
 import type { TableColumnsType } from 'antd';
 
 import './Hello.css';
@@ -6,6 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import { Song, SongDifficulty } from 'type';
 import React, { useEffect, useState } from 'react';
 import type { TableRowSelection } from 'antd/es/table/interface';
+
+import {
+  DashOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  ImportOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 
 import { useAppDispatch, useAppSelector } from '../store';
 
@@ -215,6 +223,8 @@ const Songs: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [log, setLog] = useState('');
 
+  const themeToken = theme.useToken();
+
   useEffect(() => {
     window.aam.ipcRenderer.onStartGeneratePackage(() => {
       setLog('');
@@ -232,21 +242,58 @@ const Songs: React.FC = () => {
   return (
     <>
       <Spin tip={`正在打包...${log}`} spinning={loading}>
-        <Table
-          columns={column}
-          dataSource={data}
-          size="middle"
-          scroll={{ x: 'calc(100vw - 220px)', y: 'calc(100vh - 110px)' }}
-          style={{ height: 'calc(100vh - 48px)' }}
-          pagination={{
-            // @ts-expect-error Type '"none"' is not assignable to type 'TablePaginationPosition'.
-            position: ['topLeft', 'none'],
-            showTotal: (total, range) =>
-              `${total} 曲目中的 ${range[0]}-${range[1]} `,
-            defaultPageSize: 20,
+        <div
+          style={{
+            display: 'flex',
+            height: '100%',
+            flexDirection: 'column',
           }}
-          rowSelection={rowSelection}
-        />
+        >
+          <div style={{ height: '24px', margin: '8px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <Button type="text" size="small">
+                <EditOutlined />
+                编辑JSON
+              </Button>
+              <div
+                style={{
+                  height: '16px',
+                  width: '1px',
+                  backgroundColor: themeToken.token.colorTextDisabled,
+                  margin: 2,
+                }}
+              />
+              <Button type="text" size="small" danger>
+                <DeleteOutlined />
+              </Button>
+              <Button type="text" size="small">
+                <DashOutlined />
+                解除链接
+              </Button>
+              <div style={{ flex: '1' }} />
+              <Input
+                size="small"
+                prefix={<SearchOutlined />}
+                allowClear
+                style={{ width: '250px' }}
+              />
+            </div>
+          </div>
+          <Table
+            columns={column}
+            dataSource={data}
+            size="middle"
+            scroll={{ y: 'calc(100vh - 30px - 58px)' }}
+            pagination={false}
+            rowSelection={rowSelection}
+          />
+        </div>
       </Spin>
     </>
   );

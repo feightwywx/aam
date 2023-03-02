@@ -3,18 +3,28 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 
- html {
-    height: 100%;
-    width: 100%;
- }
+html {
+  height: 100%;
+  width: 100%;
+}
 
- body {
+* {
+  transition: all 0.1s;
+}
+
+body {
   margin: 0;
   background-color: #fff;
   height: 100%;
- }
+}
 
- input:focus {
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #141414;
+  }
+}
+
+input:focus {
   outline: none;
   box-shadow: none;
 }
