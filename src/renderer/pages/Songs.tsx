@@ -6,6 +6,7 @@ import {
   Space,
   Spin,
   Table,
+  TableProps,
   Tag,
   theme,
 } from 'antd';
@@ -15,7 +16,11 @@ import './Hello.css';
 import { useNavigate } from 'react-router-dom';
 import { Song, SongDifficulty } from 'type';
 import React, { useEffect, useState } from 'react';
-import type { TableRowSelection } from 'antd/es/table/interface';
+import type {
+  FilterValue,
+  SorterResult,
+  TableRowSelection,
+} from 'antd/es/table/interface';
 
 import {
   DashOutlined,
@@ -75,6 +80,19 @@ const Songs: React.FC = () => {
   const assets = useAppSelector((state) => state.assets);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  const [filteredInfo, setFilteredInfo] = useState<
+    Record<string, FilterValue | null>
+  >({});
+
+  const handleTableChange: TableProps<SongTableData>['onChange'] = (
+    pagination,
+    filters,
+    sorter
+  ) => {
+    console.log('Various parameters', pagination, filters, sorter);
+    setFilteredInfo(filters);
+  };
 
   const column: TableColumnsType<SongTableData> = [
     {
@@ -159,12 +177,42 @@ const Songs: React.FC = () => {
           value: 3,
         },
       ],
+      filteredValue: filteredInfo.difficulties || null,
       onFilter: (value, record) =>
         record.difficulties.filter((x) => x.ratingClass === value).length > 0,
-      // TODO 谱面难度排序
+      // TODO 可选不同难度的谱面难度排序
+      sorter: (a, b) => {
+        function levelNormalizer(diff: SongDifficulty) {
+          return (
+            // diff.ratingClass * 1000 +
+            diff.rating * 10 + (diff.ratingPlus ? 5 : 0)
+          );
+        }
+
+        const lvA = a.difficulties.map(levelNormalizer);
+        const lvB = b.difficulties.map(levelNormalizer);
+
+        // 如果有筛选，从筛选条件的最高难度和歌曲拥有的最高难度之间选择较低的一个难度分级进行排序
+        if (filteredInfo.difficulties) {
+          const highestRatingClass = filteredInfo.difficulties[
+            filteredInfo.difficulties.length - 1
+          ] as number;
+          return (
+            lvA[Math.min(highestRatingClass, lvA.length - 1)] -
+            lvB[Math.min(highestRatingClass, lvB.length - 1)]
+          );
+        }
+        // 否则直接按照歌曲最高难度排序
+        return lvA[lvA.length - 1] - lvB[lvB.length - 1];
+      },
       render: (diffs: SongDifficulty[]) => {
         return diffs.map((diff) => {
           if (diff.rating < 0) return <></>;
+          if (
+            filteredInfo.difficulties &&
+            !filteredInfo.difficulties.includes(diff.ratingClass)
+          )
+            return <></>;
           return (
             <Tag
               key={diff.ratingClass}
@@ -220,6 +268,7 @@ const Songs: React.FC = () => {
         },
       ],
       onFilter: (value, record) => record.side === value,
+      filteredValue: filteredInfo.side || null,
       render: (side) => {
         if (side === 0) {
           return <Tag>光芒</Tag>;
@@ -459,6 +508,7 @@ const Songs: React.FC = () => {
             scroll={{ y: 'calc(100vh - 30px - 58px)' }}
             pagination={false}
             rowSelection={rowSelection}
+            onChange={handleTableChange}
           />
         </div>
       </Spin>
