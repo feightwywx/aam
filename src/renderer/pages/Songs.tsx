@@ -1,4 +1,14 @@
-import { Button, Input, Menu, Space, Spin, Table, Tag, theme } from 'antd';
+import {
+  Button,
+  Input,
+  Menu,
+  message,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  theme,
+} from 'antd';
 import type { TableColumnsType } from 'antd';
 
 import './Hello.css';
@@ -17,6 +27,7 @@ import {
 } from '@ant-design/icons';
 
 import { useAppDispatch, useAppSelector } from '../store';
+import { setSongs } from 'stateSlices/assets';
 
 interface SongTableData extends Song {
   key: string;
@@ -337,12 +348,6 @@ const Songs: React.FC = () => {
     }
 
     const result = cons.map(parseCon).reduce((a, b) => a && b);
-    // if (song.title_localized.en === 'Tempestissimo') {
-    //   console.log(cons);
-    //   console.log(cons.map(parseCon));
-    //   console.log(cons.map(parseCon).reduce((a, b) => a && b));
-    //   console.log(song);
-    // }
 
     return result;
   });
@@ -363,6 +368,16 @@ const Songs: React.FC = () => {
   const [log, setLog] = useState('');
 
   const themeToken = theme.useToken();
+
+  const refreshButtonClickHandler = async () => {
+    const songsResp = await window.aam.ipcRenderer.loadSongs(assets.path);
+    if (songsResp.code === 0) {
+      message.success('已刷新');
+      dispatch(setSongs(songsResp.data));
+    } else {
+      message.error(songsResp.message);
+    }
+  };
 
   useEffect(() => {
     window.aam.ipcRenderer.onStartGeneratePackage(() => {
@@ -396,7 +411,11 @@ const Songs: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-              <Button type="text" size="small">
+              <Button
+                type="text"
+                size="small"
+                onClick={refreshButtonClickHandler}
+              >
                 <ReloadOutlined />
                 刷新
               </Button>
