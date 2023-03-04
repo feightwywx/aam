@@ -1,4 +1,4 @@
-import { Button, Layout, Menu, theme } from 'antd';
+import { Button, Layout, Menu, message, theme } from 'antd';
 import type { MenuProps } from 'antd';
 import PropTypes from 'prop-types';
 import { useAppDispatch, useAppSelector } from 'renderer/store';
@@ -26,6 +26,8 @@ export const AppLayout: React.FC<{
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [messageApi, contextHolder] = message.useMessage();
   console.log(location.pathname);
 
   useEffect(() => {
@@ -51,6 +53,7 @@ export const AppLayout: React.FC<{
 
   return (
     <Layout style={{ backgroundColor: colorBgContainer }}>
+      {contextHolder}
       <Layout.Sider
         style={{
           backgroundColor: colorBgContainer,

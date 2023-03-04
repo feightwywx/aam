@@ -3,6 +3,7 @@ import {
   Input,
   Menu,
   message,
+  Modal,
   Space,
   Spin,
   Table,
@@ -80,6 +81,8 @@ const Songs: React.FC = () => {
   const assets = useAppSelector((state) => state.assets);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  const [messageApi, contextHolder] = message.useMessage();
 
   const [filteredInfo, setFilteredInfo] = useState<
     Record<string, FilterValue | null>
@@ -421,11 +424,52 @@ const Songs: React.FC = () => {
   const refreshButtonClickHandler = async () => {
     const songsResp = await window.aam.ipcRenderer.loadSongs(assets.path);
     if (songsResp.code === 0) {
-      message.success('已刷新');
+      messageApi.success('已刷新');
       dispatch(setSongs(songsResp.data));
     } else {
-      message.error(songsResp.message);
+      messageApi.error(songsResp.message);
     }
+  };
+
+  const [editJsonModalOpen, setEditJsonModalOpen] = useState(false);
+  const [editJsonModalContent, setEditJsonModalContent] = useState('');
+  const editJsonButtonClickHandler = async () => {
+    if (assets.songs && Array.isArray(assets.songs)) {
+      setEditJsonModalContent(
+        JSON.stringify(
+          {
+            songs: assets.songs.filter((song) =>
+              selectedRowKeys.includes(song.id)
+            ),
+          },
+          undefined,
+          2
+        )
+      );
+    }
+    setEditJsonModalOpen(true);
+  };
+  const editJsonModalOkHandler = () => {
+    try {
+      const songlistPatch = JSON.parse(editJsonModalContent);
+      console.log(songlistPatch);
+
+      setEditJsonModalOpen(false);
+    } catch (e: Error) {
+      if (e.name === 'SyntaxError') {
+        const errIndex = +(e as Error).message.split(' ').slice(-1)[0];
+        messageApi.error(
+          `JSON格式错误 (${errIndex}: ${editJsonModalContent
+            .replace('\n', '')
+            .slice(errIndex - 100, errIndex)}(...) )`
+        );
+      } else {
+        messageApi.error(`未知错误：${e.name}`);
+      }
+    }
+  };
+  const editJsonModalCancelHandler = () => {
+    setEditJsonModalOpen(false);
   };
 
   useEffect(() => {
@@ -444,6 +488,7 @@ const Songs: React.FC = () => {
 
   return (
     <>
+      {contextHolder}
       <Spin tip={`正在打包...${log}`} spinning={loading}>
         <div
           style={{
@@ -468,7 +513,12 @@ const Songs: React.FC = () => {
                 <ReloadOutlined />
                 刷新
               </Button>
-              <Button type="text" size="small">
+              <Button
+                type="text"
+                size="small"
+                disabled={selectedRowKeys.length < 1}
+                onClick={editJsonButtonClickHandler}
+              >
                 <EditOutlined />
                 编辑JSON
               </Button>
@@ -480,10 +530,19 @@ const Songs: React.FC = () => {
                   margin: 2,
                 }}
               />
-              <Button type="text" size="small" danger>
+              <Button
+                type="text"
+                size="small"
+                danger
+                disabled={selectedRowKeys.length < 1}
+              >
                 <DeleteOutlined />
               </Button>
-              <Button type="text" size="small">
+              <Button
+                type="text"
+                size="small"
+                disabled={selectedRowKeys.length < 1}
+              >
                 <DashOutlined />
                 解除链接
               </Button>
@@ -511,6 +570,25 @@ const Songs: React.FC = () => {
             onChange={handleTableChange}
           />
         </div>
+        <Modal
+          title="编辑"
+          open={editJsonModalOpen}
+          width="90%"
+          centered
+          onOk={editJsonModalOkHandler}
+          okText="保存"
+          onCancel={editJsonModalCancelHandler}
+        >
+          {/* TODO 考虑引入诸如monaco-editor的编辑器 */}
+          <Input.TextArea
+            rows={16}
+            value={editJsonModalContent}
+            onChange={(e) => {
+              setEditJsonModalContent(e.target.value);
+            }}
+            style={{ fontFamily: 'monospace' }}
+          />
+        </Modal>
       </Spin>
     </>
   );
