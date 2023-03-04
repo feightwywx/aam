@@ -3,6 +3,7 @@
  */
 
 import webpack from 'webpack';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 import webpackPaths from './webpack.paths';
 import { dependencies as externals } from '../../release/app/package.json';
 
@@ -44,11 +45,18 @@ const configuration: webpack.Configuration = {
   resolve: {
     extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
     modules: [webpackPaths.srcPath, 'node_modules'],
+    fallback: { path: require.resolve('path-browserify') },
   },
 
   plugins: [
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'node_modules/monaco-editor/min/vs/', to: 'vs' },
+        { from: 'node_modules/monaco-editor/min-maps/vs/', to: 'min-maps/vs' }, // source-maps
+      ],
     }),
   ],
 };

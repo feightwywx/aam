@@ -4,26 +4,32 @@ import {
   Menu,
   message,
   Modal,
+  Popover,
   Space,
   Spin,
   Table,
   TableProps,
   Tag,
   theme,
+  Tooltip,
 } from 'antd';
 import type { TableColumnsType } from 'antd';
 
 import './Hello.css';
 import { useNavigate } from 'react-router-dom';
 import { Song, SongDifficulty } from 'type';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type {
   FilterValue,
   SorterResult,
   TableRowSelection,
 } from 'antd/es/table/interface';
 
+import MonacoEditor, { loader } from '@monaco-editor/react';
+
 import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
   DashOutlined,
   DeleteOutlined,
   EditOutlined,
@@ -34,6 +40,13 @@ import {
 
 import { useAppDispatch, useAppSelector } from '../store';
 import { setSongs } from 'stateSlices/assets';
+
+loader.config({
+  paths: {
+    vs: '/vs',
+  },
+  'vs/nls': { availableLanguages: { '*': 'zh_CN' } },
+});
 
 interface SongTableData extends Song {
   key: string;
@@ -433,6 +446,18 @@ const Songs: React.FC = () => {
 
   const [editJsonModalOpen, setEditJsonModalOpen] = useState(false);
   const [editJsonModalContent, setEditJsonModalContent] = useState('');
+  const [editorMarkers, setEditorMarkers] = useState([]);
+  const editorNoError = editorMarkers.length === 0;
+  const parsedMarkers = editorMarkers
+    .map((marker) => {
+      return `${marker.message} [Ln ${marker.startLineNumber}, Col ${marker.startColumn}];`;
+    })
+    .join('\n');
+  const editorRef = useRef(null);
+
+  function handleEditorDidMount(editor, monaco) {
+    editorRef.current = editor;
+  }
   const editJsonButtonClickHandler = async () => {
     if (assets.songs && Array.isArray(assets.songs)) {
       setEditJsonModalContent(
@@ -450,27 +475,31 @@ const Songs: React.FC = () => {
     setEditJsonModalOpen(true);
   };
   const editJsonModalOkHandler = () => {
+    const submitContent = editorRef.current!.getValue();
+    console.log(submitContent);
     try {
-      const songlistPatch = JSON.parse(editJsonModalContent);
+      const songlistPatch = JSON.parse(submitContent);
       console.log(songlistPatch);
 
       setEditJsonModalOpen(false);
     } catch (e: Error) {
       if (e.name === 'SyntaxError') {
-        const errIndex = +(e as Error).message.split(' ').slice(-1)[0];
-        messageApi.error(
-          `JSON格式错误 (${errIndex}: ${editJsonModalContent
-            .replace('\n', '')
-            .slice(errIndex - 100, errIndex)}(...) )`
-        );
+        messageApi.error(`JSON格式错误`);
       } else {
         messageApi.error(`未知错误：${e.name}`);
       }
     }
   };
   const editJsonModalCancelHandler = () => {
+    setEditJsonModalContent('');
+    setEditorMarkers([]);
     setEditJsonModalOpen(false);
   };
+  function handleEditorValidation(markers) {
+    // model markers
+    setEditorMarkers(markers);
+    console.log(markers);
+  }
 
   useEffect(() => {
     window.aam.ipcRenderer.onStartGeneratePackage(() => {
@@ -578,15 +607,50 @@ const Songs: React.FC = () => {
           onOk={editJsonModalOkHandler}
           okText="保存"
           onCancel={editJsonModalCancelHandler}
+          footer={
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+              }}
+            >
+              <Popover
+                title="语法检查"
+                content={editorNoError ? '没有发现问题。' : parsedMarkers}
+                trigger="click"
+                arrow={false}
+              >
+                <Button type="text" danger={!editorNoError}>
+                  {editorNoError ? (
+                    <CheckCircleOutlined />
+                  ) : (
+                    <CloseCircleOutlined />
+                  )}
+                  {editorMarkers.length > 0 ? `${editorMarkers.length}` : ''}
+                </Button>
+              </Popover>
+              <div style={{ flex: 1 }} />
+              <Button onClick={editJsonModalCancelHandler}>取消</Button>
+              <Button
+                type="primary"
+                // disabled={!editorNoError}
+                onClick={editJsonModalOkHandler}
+              >
+                保存
+              </Button>
+            </div>
+          }
+          destroyOnClose
         >
-          {/* TODO 考虑引入诸如monaco-editor的编辑器 */}
-          <Input.TextArea
-            rows={16}
+          <MonacoEditor
+            height="75vh"
+            width="100%"
             value={editJsonModalContent}
-            onChange={(e) => {
-              setEditJsonModalContent(e.target.value);
-            }}
-            style={{ fontFamily: 'monospace' }}
+            defaultLanguage="json"
+            theme="vs-dark"
+            saveViewState={false}
+            onValidate={handleEditorValidation}
+            onMount={handleEditorDidMount}
           />
         </Modal>
       </Spin>
