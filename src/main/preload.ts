@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { Song, Songlist } from 'type';
 
 export type Channels = 'ipc-example';
 
@@ -20,6 +21,9 @@ contextBridge.exposeInMainWorld('electron', {
 contextBridge.exposeInMainWorld('aam', {
   ipcRenderer: {
     loadSongs: (path: string) => ipcRenderer.invoke('aam:loadSongs', path),
+    saveSonglist: (songlist: Songlist) =>
+      ipcRenderer.invoke('aam:saveSonglist', songlist),
+
     onCloseFolder: (callback: (event: Event, args: unknown) => void) =>
       ipcRenderer.on('aam:closeFolder', callback),
     onPushSongs: (callback: (event: Event, args: unknown) => void) => {

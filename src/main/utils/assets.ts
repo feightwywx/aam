@@ -6,8 +6,9 @@ import archiver, { ProgressData } from 'archiver';
 import { app, BrowserWindow, dialog } from 'electron';
 
 import { makeSuccessResp, makeFailResp } from './ipcResponse';
-import type { Song } from '../../type';
+import type { Song, Songlist } from '../../type';
 import { buildSrcSongDepList } from './songDeps';
+import { globalStore } from '../../globalStore';
 
 export async function loadSonglistIPC(assetsPath: string) {
   log.info(`loadSonglistIPC(): assets: ${assetsPath}`);
@@ -21,6 +22,21 @@ export async function loadSonglistIPC(assetsPath: string) {
         return makeSuccessResp(songlist.songs);
       }
       return makeFailResp('songlist格式错误');
+    } catch (e) {
+      return makeFailResp((e as Error).toString());
+    }
+  }
+  return makeFailResp('不合法的Assets文件夹：未找到songlist');
+}
+
+export async function saveSonglistIPC(songlist: Songlist) {
+  log.info(`overrideSongsIPC()`);
+  const assetsPath = globalStore.get('assets.path') as string;
+  const songlistPath = path.join(assetsPath, 'songs', 'songlist');
+  if (fs.existsSync(songlistPath)) {
+    try {
+      fs.writeFileSync(songlistPath, JSON.stringify(songlist, undefined, 2));
+      return makeSuccessResp({});
     } catch (e) {
       return makeFailResp((e as Error).toString());
     }

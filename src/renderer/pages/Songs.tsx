@@ -474,14 +474,51 @@ const Songs: React.FC = () => {
     }
     setEditJsonModalOpen(true);
   };
-  const editJsonModalOkHandler = () => {
+  const editJsonModalOkHandler = async () => {
     const submitContent = editorRef.current!.getValue();
-    console.log(submitContent);
+    console.log('submit content', submitContent);
     try {
-      const songlistPatch = JSON.parse(submitContent);
-      console.log(songlistPatch);
+      const songlistPatch = JSON.parse(submitContent) as { songs: Song[] };
+      console.log('songlist patch:', songlistPatch);
 
-      setEditJsonModalOpen(false);
+      const indexedSonglistPatch = songlistPatch.songs.map((song, index) => {
+        const correspondIndex = assets.songs?.findIndex((sourceSong) => {
+          return sourceSong.id === song.id;
+        });
+        console.log(correspondIndex)
+        if (correspondIndex !== undefined && correspondIndex > -1) {
+          return { correspondIndex, song };
+        }
+        return null;
+      });
+
+      console.log('indexedSonglistPatch', indexedSonglistPatch)
+
+      if (assets.songs) {
+        const patchedSonglist = assets.songs.map((sourceSong, index) => {
+          for (const patchSongStruct of indexedSonglistPatch) {
+            if (patchSongStruct && patchSongStruct.correspondIndex === index) {
+              return patchSongStruct.song;
+            }
+          }
+          return sourceSong;
+        });
+
+        const saveSonglistResp = await window.aam.ipcRenderer.saveSonglist({
+          songs: patchedSonglist,
+        });
+
+        console.log('patched: ', patchedSonglist);
+
+        if (saveSonglistResp.code === 0) {
+          messageApi.success('已保存');
+          // window.aam.ipcRenderer.loadSongs(assets.path);
+          refreshButtonClickHandler();
+          setEditJsonModalOpen(false);
+        } else {
+          messageApi.error(saveSonglistResp.message);
+        }
+      }
     } catch (e: Error) {
       if (e.name === 'SyntaxError') {
         messageApi.error(`JSON格式错误`);
@@ -597,6 +634,7 @@ const Songs: React.FC = () => {
             pagination={false}
             rowSelection={rowSelection}
             onChange={handleTableChange}
+            showSorterTooltip={false}
           />
         </div>
         <Modal

@@ -16,9 +16,10 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { makeFailResp, makeSuccessResp } from './utils/ipcResponse';
-import { loadSonglistIPC } from './utils/assets';
+import { loadSonglistIPC, saveSonglistIPC } from './utils/assets';
 import { globalStore } from '../globalStore';
 import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
+import { Song, Songlist } from 'type';
 
 // class AppUpdater {
 //   constructor() {
@@ -193,6 +194,13 @@ app
         dialog.showErrorBox('错误', songlist.message);
       }
       return songlist;
+    });
+    ipcMain.handle('aam:saveSonglist', async (_, songlist: Songlist) => {
+      const resp = await saveSonglistIPC(songlist);
+      if (resp.code !== 0) {
+        dialog.showErrorBox('错误', resp.message);
+      }
+      return resp;
     });
   })
   .catch(console.log);

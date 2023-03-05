@@ -1,5 +1,5 @@
 import { Channels } from 'main/preload';
-import { IPCResponse, Song } from '../type';
+import { IPCResponse, Song, Songlist } from '../type';
 
 declare global {
   interface Window {
@@ -24,6 +24,8 @@ declare global {
     aam: {
       ipcRenderer: {
         loadSongs: (path: string) => Promise<IPCResponse<Song[]>>;
+        saveSonglist: (songlist: Songlist) => Promise<IPCResponse>;
+
         onCloseFolder: (
           callback: (event: Event, args: unknown) => void
         ) => void;
