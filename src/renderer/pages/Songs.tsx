@@ -687,6 +687,7 @@ const Songs: React.FC = () => {
             defaultLanguage="json"
             theme="vs-dark"
             saveViewState={false}
+            loading={<Spin tip='加载编辑器...' delay={100}/>}
             onValidate={handleEditorValidation}
             onMount={handleEditorDidMount}
           />
