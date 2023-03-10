@@ -25,9 +25,6 @@ import type {
   TableRowSelection,
 } from 'antd/es/table/interface';
 
-import * as monaco from 'monaco-editor';
-import MonacoEditor, { loader } from '@monaco-editor/react';
-
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -41,8 +38,7 @@ import {
 
 import { useAppDispatch, useAppSelector } from '../store';
 import { setSongs } from 'stateSlices/assets';
-
-loader.config({ monaco });
+import MonacoEditor from 'renderer/components/MonacoEditor';
 
 interface SongTableData extends Song {
   key: string;
@@ -704,13 +700,7 @@ const Songs: React.FC = () => {
           destroyOnClose
         >
           <MonacoEditor
-            height="75vh"
-            width="100%"
             value={editJsonModalContent}
-            defaultLanguage="json"
-            theme="vs-dark"
-            saveViewState={false}
-            loading={<Spin tip="加载编辑器..." delay={100} />}
             onValidate={handleEditorValidation}
             onMount={handleEditorDidMount}
           />
