@@ -534,6 +534,32 @@ const Songs: React.FC = () => {
     console.log(markers);
   }
 
+  const unlinkButtonClickHandler = async () => {
+    if (assets.songs) {
+      const patchedSonglist = assets.songs.map((song, index) => {
+        if (selectedRowKeys.includes(song.id) && song._external) {
+          return { ...song, _external: undefined };
+        }
+        return song;
+      });
+
+      const saveSonglistResp = await window.aam.ipcRenderer.saveSonglist({
+        songs: patchedSonglist,
+      });
+
+      console.log('patched: ', patchedSonglist);
+
+      if (saveSonglistResp.code === 0) {
+        messageApi.success('已保存');
+        // window.aam.ipcRenderer.loadSongs(assets.path);
+        refreshButtonClickHandler();
+        setEditJsonModalOpen(false);
+      } else {
+        messageApi.error(saveSonglistResp.message);
+      }
+    }
+  };
+
   useEffect(() => {
     window.aam.ipcRenderer.onStartGeneratePackage(() => {
       setLog('');
@@ -604,6 +630,7 @@ const Songs: React.FC = () => {
                 type="text"
                 size="small"
                 disabled={selectedRowKeys.length < 1}
+                onClick={unlinkButtonClickHandler}
               >
                 <DashOutlined />
                 解除链接
