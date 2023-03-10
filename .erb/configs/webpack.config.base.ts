@@ -53,12 +53,6 @@ const configuration: webpack.Configuration = {
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
     }),
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: 'node_modules/monaco-editor/min/vs/', to: 'vs' },
-        { from: 'node_modules/monaco-editor/min-maps/vs/', to: 'min-maps/vs' }, // source-maps
-      ],
-    }),
     new MonacoWebpackPlugin(),
   ],
 };
