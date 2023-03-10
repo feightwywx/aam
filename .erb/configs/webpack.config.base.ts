@@ -4,6 +4,7 @@
 
 import webpack from 'webpack';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
+import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin';
 import webpackPaths from './webpack.paths';
 import { dependencies as externals } from '../../release/app/package.json';
 
@@ -58,6 +59,7 @@ const configuration: webpack.Configuration = {
         { from: 'node_modules/monaco-editor/min-maps/vs/', to: 'min-maps/vs' }, // source-maps
       ],
     }),
+    new MonacoWebpackPlugin(),
   ],
 };
 

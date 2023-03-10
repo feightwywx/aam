@@ -25,6 +25,7 @@ import type {
   TableRowSelection,
 } from 'antd/es/table/interface';
 
+import * as monaco from 'monaco-editor';
 import MonacoEditor, { loader } from '@monaco-editor/react';
 
 import {
@@ -41,12 +42,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../store';
 import { setSongs } from 'stateSlices/assets';
 
-loader.config({
-  paths: {
-    vs: '/vs',
-  },
-  'vs/nls': { availableLanguages: { '*': 'zh_CN' } },
-});
+loader.config({ monaco });
 
 interface SongTableData extends Song {
   key: string;
@@ -485,14 +481,14 @@ const Songs: React.FC = () => {
         const correspondIndex = assets.songs?.findIndex((sourceSong) => {
           return sourceSong.id === song.id;
         });
-        console.log(correspondIndex)
+        console.log(correspondIndex);
         if (correspondIndex !== undefined && correspondIndex > -1) {
           return { correspondIndex, song };
         }
         return null;
       });
 
-      console.log('indexedSonglistPatch', indexedSonglistPatch)
+      console.log('indexedSonglistPatch', indexedSonglistPatch);
 
       if (assets.songs) {
         const patchedSonglist = assets.songs.map((sourceSong, index) => {
@@ -687,7 +683,7 @@ const Songs: React.FC = () => {
             defaultLanguage="json"
             theme="vs-dark"
             saveViewState={false}
-            loading={<Spin tip='加载编辑器...' delay={100}/>}
+            loading={<Spin tip="加载编辑器..." delay={100} />}
             onValidate={handleEditorValidation}
             onMount={handleEditorDidMount}
           />
