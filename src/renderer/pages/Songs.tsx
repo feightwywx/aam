@@ -530,6 +530,40 @@ const Songs: React.FC = () => {
     console.log(markers);
   }
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const deleteModalOkButtonClickHandler = async () => {
+    if (assets.songs) {
+      const patchedSonglist = assets.songs.filter((song, index) => {
+        if (selectedRowKeys.includes(song.id)) {
+          return false;
+        }
+        return true;
+      });
+
+      const mergedResults = await Promise.allSettled([
+        window.aam.ipcRenderer.saveSonglist({
+          songs: patchedSonglist,
+        }),
+        window.aam.ipcRenderer.deleteSongs(selectedRowKeys as string[]),
+      ]);
+
+      console.log(mergedResults);
+      const isAllResultsOk = mergedResults
+        .map((result) => {
+          return result.status === 'rejected' ? 1 : result.value.code;
+        })
+        .reduce((a, b) => a + b);
+      if (isAllResultsOk === 0) {
+        messageApi.success('已保存');
+        // window.aam.ipcRenderer.loadSongs(assets.path);
+        refreshButtonClickHandler();
+        setDeleteModalOpen(false);
+      } else {
+        messageApi.error('遇到了未知错误');
+      }
+    }
+  };
+
   const unlinkButtonClickHandler = async () => {
     if (assets.songs) {
       const patchedSonglist = assets.songs.map((song, index) => {
@@ -619,6 +653,7 @@ const Songs: React.FC = () => {
                 size="small"
                 danger
                 disabled={selectedRowKeys.length < 1}
+                onClick={() => setDeleteModalOpen(true)}
               >
                 <DeleteOutlined />
               </Button>
@@ -704,6 +739,24 @@ const Songs: React.FC = () => {
             onValidate={handleEditorValidation}
             onMount={handleEditorDidMount}
           />
+        </Modal>
+        <Modal
+          title="删除"
+          open={deleteModalOpen}
+          onCancel={() => setDeleteModalOpen(false)}
+          okType="danger"
+          onOk={deleteModalOkButtonClickHandler}
+        >
+          将会删除以下歌曲（包括对应的文件）。
+          <br />
+          {selectedRowKeys.map((id) => (
+            <>
+              {id}
+              <br />
+            </>
+          ))}
+          <br />
+          <b>此操作不能撤销。</b>
         </Modal>
       </Spin>
     </>

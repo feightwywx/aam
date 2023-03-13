@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('aam', {
     loadSongs: (path: string) => ipcRenderer.invoke('aam:loadSongs', path),
     saveSonglist: (songlist: Songlist) =>
       ipcRenderer.invoke('aam:saveSonglist', songlist),
+    deleteSongs: (ids: string[]) => ipcRenderer.invoke('aam:deleteSongs', ids),
 
     onCloseFolder: (callback: (event: Event, args: unknown) => void) =>
       ipcRenderer.on('aam:closeFolder', callback),

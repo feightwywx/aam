@@ -16,7 +16,7 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { makeFailResp, makeSuccessResp } from './utils/ipcResponse';
-import { loadSonglistIPC, saveSonglistIPC } from './utils/assets';
+import { deleteSongsIPC, loadSonglistIPC, saveSonglistIPC } from './utils/assets';
 import { globalStore } from '../globalStore';
 import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
 import { Song, Songlist } from 'type';
@@ -197,6 +197,13 @@ app
     });
     ipcMain.handle('aam:saveSonglist', async (_, songlist: Songlist) => {
       const resp = await saveSonglistIPC(songlist);
+      if (resp.code !== 0) {
+        dialog.showErrorBox('错误', resp.message);
+      }
+      return resp;
+    });
+    ipcMain.handle('aam:deleteSongs', async (_, ids: string[]) => {
+      const resp = await deleteSongsIPC(ids);
       if (resp.code !== 0) {
         dialog.showErrorBox('错误', resp.message);
       }

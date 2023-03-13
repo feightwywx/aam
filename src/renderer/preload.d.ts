@@ -25,6 +25,7 @@ declare global {
       ipcRenderer: {
         loadSongs: (path: string) => Promise<IPCResponse<Song[]>>;
         saveSonglist: (songlist: Songlist) => Promise<IPCResponse>;
+        deleteSongs: (ids: string[]) => Promise<IPCResponse>;
 
         onCloseFolder: (
           callback: (event: Event, args: unknown) => void

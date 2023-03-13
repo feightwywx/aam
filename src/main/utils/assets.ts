@@ -30,7 +30,7 @@ export async function loadSonglistIPC(assetsPath: string) {
 }
 
 export async function saveSonglistIPC(songlist: Songlist) {
-  log.info(`overrideSongsIPC()`);
+  log.info(`saveSongsIPC()`);
   const assetsPath = globalStore.get('assets.path') as string;
   const songlistPath = path.join(assetsPath, 'songs', 'songlist');
   if (fs.existsSync(songlistPath)) {
@@ -42,6 +42,32 @@ export async function saveSonglistIPC(songlist: Songlist) {
     }
   }
   return makeFailResp('不合法的Assets文件夹：未找到songlist');
+}
+
+export async function deleteSongsIPC(ids: string[]) {
+  log.info(`deleteSongsIPC(): ${ids.join(',')}`);
+  const assetsPath = globalStore.get('assets.path') as string;
+  const deleteSongPromises = ids.map(
+    (songId) =>
+      new Promise<void>((resolve, reject) => {
+        const songDir = path.join(assetsPath, 'songs', songId);
+        log.info(`deleting ${songDir}`);
+        try {
+          fs.rmSync(songDir, { recursive: true, force: true });
+          resolve();
+        } catch (e) {
+          log.error(e);
+          reject(e);
+        }
+      })
+  );
+  const deleteSongResults = await Promise.allSettled(deleteSongPromises);
+  for (const result of deleteSongResults) {
+    if (result.status === 'rejected') {
+      return makeFailResp(result.reason);
+    }
+  }
+  return makeSuccessResp({});
 }
 
 export async function importSong(
