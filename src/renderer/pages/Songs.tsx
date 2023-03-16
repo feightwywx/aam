@@ -26,6 +26,7 @@ import type {
 } from 'antd/es/table/interface';
 
 import {
+  BorderInnerOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   DashOutlined,
@@ -436,6 +437,13 @@ const Songs: React.FC = () => {
     }
   };
 
+  const reverseSelectButtonClickHandler = async () => {
+    const newSelectedRowKeys = filteredData
+      .map((row) => row.key)
+      .filter((key) => !selectedRowKeys.includes(key));
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+
   const [editJsonModalOpen, setEditJsonModalOpen] = useState(false);
   const [editJsonModalContent, setEditJsonModalContent] = useState('');
   const [editorMarkers, setEditorMarkers] = useState([]);
@@ -635,10 +643,10 @@ const Songs: React.FC = () => {
                 type="text"
                 size="small"
                 disabled={selectedRowKeys.length < 1}
-                onClick={editJsonButtonClickHandler}
+                onClick={reverseSelectButtonClickHandler}
               >
-                <EditOutlined />
-                编辑JSON
+                <BorderInnerOutlined />
+                反选
               </Button>
               <div
                 style={{
@@ -648,6 +656,15 @@ const Songs: React.FC = () => {
                   margin: 2,
                 }}
               />
+              <Button
+                type="text"
+                size="small"
+                disabled={selectedRowKeys.length < 1}
+                onClick={editJsonButtonClickHandler}
+              >
+                <EditOutlined />
+                编辑JSON
+              </Button>
               <Button
                 type="text"
                 size="small"
