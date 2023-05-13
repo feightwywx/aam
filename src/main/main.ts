@@ -12,14 +12,19 @@ import path from 'path';
 import fs from 'fs';
 import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 // import { autoUpdater } from 'electron-updater';
-import log from 'electron-log';
+import log, { LevelOption } from 'electron-log';
+import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
+import { Song, Songlist } from 'type';
+
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { makeFailResp, makeSuccessResp } from './utils/ipcResponse';
-import { deleteSongsIPC, loadSonglistIPC, saveSonglistIPC } from './utils/assets';
+import {
+  deleteSongsIPC,
+  loadSonglistIPC,
+  saveSonglistIPC,
+} from './utils/assets';
 import { globalStore } from '../globalStore';
-import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
-import { Song, Songlist } from 'type';
 
 // class AppUpdater {
 //   constructor() {
@@ -107,6 +112,8 @@ const createWindow = async () => {
       });
       if (response === 1) {
         e.preventDefault();
+      } else {
+        globalStore.reset('assets');
       }
     }
   });
@@ -119,7 +126,7 @@ const createWindow = async () => {
   const menu = menuBuilder.buildMenu();
 
   globalStore.onDidChange('assets.path', (newValue) => {
-    log.debug(!!newValue, menu.getMenuItemById('file.import')?.enabled)
+    log.debug(!!newValue, menu.getMenuItemById('file.import')?.enabled);
     menu.getMenuItemById('file.import.song')!.enabled = !!newValue;
     menu.getMenuItemById('file.import.songLink')!.enabled = !!newValue;
     menu.getMenuItemById('file.import.bg')!.enabled = !!newValue;
@@ -158,6 +165,8 @@ app
 
     createWindow();
 
+    log.transports.file.level = globalStore.get('settings.logLevel');
+
     ipcMain.on('electron-store-get', async (event, val) => {
       event.returnValue = globalStore.get(val);
     });
@@ -165,11 +174,18 @@ app
       globalStore.set(key, val);
     });
 
-    globalStore.onDidAnyChange((newValue) => {
+    globalStore.onDidChange('assets', (newValue) => {
       mainWindow?.webContents.send(
         'aam:pushSongs',
         (newValue as { assets: unknown }).assets
       );
+    });
+
+    globalStore.onDidChange('settings.logLevel', (newValue: LevelOption) => {
+      if (newValue) {
+        log.transports.file.level = newValue;
+      }
+      log.info(log.transports.file.resolvePath);
     });
 
     ipcMain.handle('dialog:openDirectory', async () => {

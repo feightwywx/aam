@@ -1,3 +1,5 @@
+import { LogLevel } from 'electron-log';
+
 export interface IPCResponse<T = unknown> {
   code: number;
   message: string;
@@ -47,4 +49,16 @@ export interface Songlist {
 export interface AssetDependence {
   dep: string;
   sourceID: string;
+}
+
+export interface StoreType {
+  assets: {
+    path: string;
+    songs?: Song[];
+  };
+  settings: SettingsType;
+}
+
+export interface SettingsType {
+  logLevel: LogLevel;
 }

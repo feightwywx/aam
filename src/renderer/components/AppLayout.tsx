@@ -5,13 +5,11 @@ import { useAppDispatch, useAppSelector } from 'renderer/store';
 import { useLocation, useNavigate, useRoutes } from 'react-router-dom';
 import { setPath, setSongs } from 'stateSlices/assets';
 import { useEffect } from 'react';
-import { AlignLeftOutlined, PictureOutlined, SettingOutlined } from '@ant-design/icons';
-
-export const MainMenu: MenuProps['items'] = [
-  { key: 'songs', label: '曲目', icon: <AlignLeftOutlined /> },
-  { key: 'bg', label: '背景', icon: <PictureOutlined />, disabled: true },
-  { key: 'setting', label: '设置', icon: <SettingOutlined />, disabled: true}
-];
+import {
+  AlignLeftOutlined,
+  PictureOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 
 export const AppLayout: React.FC<{
   children: React.ReactNode;
@@ -29,6 +27,21 @@ export const AppLayout: React.FC<{
 
   const [messageApi, contextHolder] = message.useMessage();
   console.log(location.pathname);
+
+  const MainMenu: MenuProps['items'] = [
+    {
+      key: 'songs',
+      label: '曲目',
+      icon: <AlignLeftOutlined />,
+      onClick: () => navigate('/songs'),
+    },
+    {
+      key: 'settings',
+      label: '设置',
+      icon: <SettingOutlined />,
+      onClick: () => navigate('/settings'),
+    },
+  ];
 
   useEffect(() => {
     window.electron.ipcRenderer.store.set('assets', assets);
@@ -92,6 +105,8 @@ export const AppLayout: React.FC<{
     </Layout>
   );
 };
+
+export default AppLayout;
 
 AppLayout.propTypes = {
   children: PropTypes.element.isRequired,

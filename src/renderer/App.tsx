@@ -9,6 +9,7 @@ import { AppLayout } from './components/AppLayout';
 import Hello from './pages/Hello';
 import Songs from './pages/Songs';
 import store from './store';
+import Settings from './pages/Settings';
 
 export default function App() {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
@@ -29,6 +30,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Hello />} />
               <Route path="/songs" element={<Songs />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </AppLayout>
         </HashRouter>
