@@ -12,6 +12,7 @@ declare global {
         ): (() => void) | undefined;
         once(channel: Channels, func: (...args: unknown[]) => void): void;
         openDirectory: () => Promise<string | undefined>;
+        showLogFile: () => Promise<void>;
 
         store: {
           get: (key: string) => unknown;

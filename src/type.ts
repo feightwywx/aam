@@ -40,6 +40,8 @@ export interface SongDifficulty {
   ratingPlus?: boolean;
   jacketOverride?: boolean;
   audioOverride?: boolean;
+  hidden_until_unlocked?: true;
+  hidden_until?: 'none' | 'always' | 'difficulty' | 'song';
 }
 
 export interface Songlist {
@@ -61,4 +63,6 @@ export interface StoreType {
 
 export interface SettingsType {
   logLevel: LogLevel;
+  minimalRating: number;
+  ignoredSong: string;
 }

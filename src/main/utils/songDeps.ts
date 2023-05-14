@@ -2,6 +2,7 @@ import path from 'path';
 import log from 'electron-log';
 
 import type { AssetDependence, Song } from 'type';
+import { globalStore } from '../../globalStore';
 
 export async function buildSrcSongDepList(song: Song): Promise<string[]> {
   log.info(`buildSrcSongDepList(): build for ${song.id}`);
@@ -12,7 +13,7 @@ export async function buildSrcSongDepList(song: Song): Promise<string[]> {
   deps.push('base_256.jpg');
 
   song.difficulties.forEach((diff) => {
-    if (diff.rating >= 0) {
+    if (diff.rating >= globalStore.store.settings.minimalRating) {
       deps.push(`${diff.ratingClass}.aff`);
     }
 
@@ -33,6 +34,11 @@ export async function buildAssetsSongDepList(
   song: Song
 ): Promise<AssetDependence[]> {
   log.info(`buildAssetsSongDepList(): build for ${song.id}`);
+  if (globalStore.store.settings.ignoredSong.split(',').includes(song.id)) {
+    log.info(`skipped, song in ignoredSong`);
+    return [];
+  }
+
   const deps: AssetDependence[] = [];
 
   function pushSongDeps(dep: string) {
@@ -82,7 +88,7 @@ export async function buildAssetsSongDepList(
     pushSongDeps('base.ogg');
 
     song.difficulties.forEach((diff) => {
-      if (diff.rating >= 0) {
+      if (diff.rating >= globalStore.store.settings.minimalRating) {
         pushSongDeps(`${diff.ratingClass}.aff`);
       }
 

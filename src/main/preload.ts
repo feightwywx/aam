@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('electron', {
       // Other method you want to add like has(), reset(), etc.
     },
     openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
+    showLogFile: () => ipcRenderer.invoke('showLogFile'),
   },
 });
 

@@ -8,6 +8,9 @@ export const globalStore = new Store<StoreType>({
     },
     settings: {
       logLevel: 'info',
+      minimalRating: 0,
+      ignoredSong:
+        'arcahv,tempestissimo,defection,infinitestrife,worldender,pentiment,arcanaeden,testify,lovelessdress,last,lasteternity,callimakarma,ignotusafterburn,redandblueandgreen,singularityvvvip,overdead,mismal',
     },
   },
 });

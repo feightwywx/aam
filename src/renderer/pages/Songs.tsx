@@ -17,7 +17,7 @@ import type { TableColumnsType } from 'antd';
 
 import './Hello.css';
 import { useNavigate } from 'react-router-dom';
-import { Song, SongDifficulty } from 'type';
+import type { SettingsType, Song, SongDifficulty } from 'type';
 import React, { useEffect, useRef, useState } from 'react';
 import type {
   FilterValue,
@@ -87,6 +87,9 @@ const Songs: React.FC = () => {
   const assets = useAppSelector((state) => state.assets);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const settings = window.electron.ipcRenderer.store.get(
+    'settings'
+  ) as SettingsType;
 
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -321,9 +324,21 @@ const Songs: React.FC = () => {
     },
   ];
 
+  const assetsSongsFilteredBySettings: Song[] =
+    assets.songs && Array.isArray(assets.songs)
+      ? assets.songs
+          .filter((song) => !settings.ignoredSong.split(',').includes(song.id))
+          .map((song) => ({
+            ...song,
+            difficulties: song.difficulties.filter(
+              (dif) => dif.rating >= settings.minimalRating
+            ),
+          }))
+      : [];
+
   let data: SongTableData[] = [];
-  if (assets.songs && Array.isArray(assets.songs)) {
-    data = assets.songs.map((song, index) => ({
+  if (assetsSongsFilteredBySettings) {
+    data = assetsSongsFilteredBySettings.map((song, index) => ({
       key: song.id,
       title: song.title_localized.ja ?? song.title_localized.en,
       bpm_combine: `${song.bpm.split('\n')[0]} (${song.bpm_base})`,

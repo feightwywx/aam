@@ -225,5 +225,9 @@ app
       }
       return resp;
     });
+
+    ipcMain.handle('showLogFile', async () => {
+      shell.openPath(path.dirname(log.transports.file.getFile().path));
+    });
   })
   .catch(console.log);
