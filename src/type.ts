@@ -66,3 +66,8 @@ export interface SettingsType {
   minimalRating: number;
   ignoredSong: string;
 }
+
+export interface AppInfo {
+  version: string;
+  isDebug: boolean;
+}

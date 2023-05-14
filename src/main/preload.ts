@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('electron', {
     },
     openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
     showLogFile: () => ipcRenderer.invoke('showLogFile'),
+    reset: () => ipcRenderer.invoke('reset'),
+    getAppInfo: () => ipcRenderer.invoke('getAppInfo'),
   },
 });
 

@@ -1,5 +1,5 @@
 import { Channels } from 'main/preload';
-import { IPCResponse, Song, Songlist } from '../type';
+import { AppInfo, IPCResponse, Song, Songlist } from '../type';
 
 declare global {
   interface Window {
@@ -13,6 +13,8 @@ declare global {
         once(channel: Channels, func: (...args: unknown[]) => void): void;
         openDirectory: () => Promise<string | undefined>;
         showLogFile: () => Promise<void>;
+        reset: () => Promise<void>;
+        getAppInfo: () => Promise<AppInfo>;
 
         store: {
           get: (key: string) => unknown;

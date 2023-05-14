@@ -1,15 +1,18 @@
+import { ExclamationCircleFilled } from '@ant-design/icons';
 import {
   Button,
   Form,
   Input,
   InputNumber,
   Layout,
+  Modal,
   Select,
   Space,
   Typography,
+  message,
 } from 'antd';
-import React from 'react';
-import { SettingsType } from 'type';
+import React, { useState } from 'react';
+import { AppInfo, SettingsType } from 'type';
 
 const Settings: React.FC = () => {
   const [form] = Form.useForm();
@@ -18,11 +21,18 @@ const Settings: React.FC = () => {
     | undefined;
   console.log(settings);
 
+  const [messageApi] = message.useMessage();
+
+  const [appInfo, setAppInfo] = useState<AppInfo>();
+  const appInfoPromise = window.electron.ipcRenderer
+    .getAppInfo()
+    .then((resp) => setAppInfo(resp));
+
   return (
-    <>
+    <div style={{ height: '100vh', overflow: 'scroll' }}>
       <Form
         form={form}
-        style={{padding: '0 24px'}}
+        style={{ padding: '0 24px' }}
         autoComplete="off"
         layout="vertical"
         initialValues={settings}
@@ -38,7 +48,7 @@ const Settings: React.FC = () => {
             ) {
               window.electron.ipcRenderer.store.set(
                 `settings.${i}`,
-                changedVal[i]
+                changedVal[i as keyof SettingsType]
               );
             }
           }
@@ -96,8 +106,44 @@ const Settings: React.FC = () => {
             </Typography.Text>
           </Space>
         </Form.Item>
+
+        <Form.Item label="初始化">
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Button
+              danger
+              onClick={() => {
+                Modal.confirm({
+                  title: '你确定吗？',
+                  icon: <ExclamationCircleFilled />,
+                  content: 'AAM将在初始化后退出。此操作不能撤销。',
+                  onOk() {
+                    return new Promise((resolve, reject) => {
+                      window.electron.ipcRenderer.reset();
+                      messageApi.success('已重置');
+                      resolve();
+                    }).catch(() => console.log('Oops errors!'));
+                  },
+                  onCancel() {},
+                });
+              }}
+            >
+              初始化
+            </Button>
+            <Typography.Text type="secondary">
+              如果您遇到了问题，可以尝试初始化AAM。这将把所有设置恢复到默认状态。
+            </Typography.Text>
+          </Space>
+        </Form.Item>
+        <Form.Item>
+          <Typography.Text type="secondary">
+            aam -{' '}
+            {appInfo?.isDebug
+              ? `development mode, electron ${appInfo.version}`
+              : appInfo?.version}
+          </Typography.Text>
+        </Form.Item>
       </Form>
-    </>
+    </div>
   );
 };
 

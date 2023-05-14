@@ -14,7 +14,7 @@ import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 // import { autoUpdater } from 'electron-updater';
 import log, { LevelOption } from 'electron-log';
 import installExtension, { REDUX_DEVTOOLS } from 'electron-devtools-installer';
-import { Song, Songlist } from 'type';
+import { AppInfo, Song, Songlist } from 'type';
 
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
@@ -228,6 +228,18 @@ app
 
     ipcMain.handle('showLogFile', async () => {
       shell.openPath(path.dirname(log.transports.file.getFile().path));
+    });
+
+    ipcMain.handle('reset', async () => {
+      globalStore.reset('settings');
+      app.exit();
+    });
+
+    ipcMain.handle('getAppInfo', async () => {
+      return {
+        version: app.getVersion(),
+        isDebug,
+      } as AppInfo;
     });
   })
   .catch(console.log);
