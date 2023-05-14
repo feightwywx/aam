@@ -1,12 +1,12 @@
 import { Form, Input, Layout, Select, Space, Typography } from 'antd';
-import { Settings } from 'electron';
 import React from 'react';
-import moduleName from 'electron-log/renderer';
+import { SettingsType } from 'type';
 
 const Settings: React.FC = () => {
   const [form] = Form.useForm();
-  const settings: Settings | undefined =
-    window.electron.ipcRenderer.store.get('settings');
+  const settings = window.electron.ipcRenderer.store.get('settings') as
+    | SettingsType
+    | undefined;
 
   return (
     <>
@@ -16,12 +16,16 @@ const Settings: React.FC = () => {
           autoComplete="off"
           layout="vertical"
           initialValues={settings}
-          onValuesChange={(changedVal: Partial<Settings>) => {
+          onValuesChange={(changedVal: Partial<SettingsType>) => {
             for (const i in changedVal) {
-              window.electron.ipcRenderer.store.set(
-                `settings.${i}`,
-                changedVal[i]
-              );
+              if (
+                Object.prototype.hasOwnProperty.call(changedVal, 'logLevel')
+              ) {
+                window.electron.ipcRenderer.store.set(
+                  `settings.${i}`,
+                  changedVal.logLevel
+                );
+              }
             }
           }}
         >
